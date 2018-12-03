@@ -1,0 +1,3 @@
+[submodule "matlab/util"]
+	path = matlab/util
+	url = git@bitbucket.org:markbucklin/matlab-util.git
