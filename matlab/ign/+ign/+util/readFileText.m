@@ -27,7 +27,7 @@ end
 charText = fileread(filename);
 
 % CONVERT LINES TO CELLS IF SPECIFIED
-if linesToCell	
+if linesToCell
 	txt = strsplit(charText, {'\r\n','\n', '\r'}, 'CollapseDelimiters', false)';
 else
 	txt = charText;
@@ -43,7 +43,7 @@ flag = false;
 fid = fopen(filename,'r');
 
 % SUCCESSFUL FILE OPEN
-if fid < 0	
+if fid < 0
 	return
 end
 
