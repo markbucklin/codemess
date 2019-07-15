@@ -1,6 +1,7 @@
 %%
 rs = simpleRectSelection();
 
+
 wait
 rd(1).rect = rs.getRect();
 rd(1).vid = rs.getVid();

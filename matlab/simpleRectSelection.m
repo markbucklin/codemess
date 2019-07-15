@@ -1,4 +1,4 @@
-function out = simpleRectSelection(roiRect, vidToDisplay, rectSize)
+function rs = simpleRectSelection(roiRect, vidToDisplay, rectSize)
 
 
 if nargin < 1 || isempty(roiRect)
@@ -13,15 +13,17 @@ end
 
 % todo: numframes or refactor out
 maxNumFrames = 800;
+rectColors = {roiRect.Color};
 
 if isempty(vidToDisplay)
     %%
     chunkSize=8;
     [config,control,state] = ignition.io.tiff.initializeTiffFileStream();
-    [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, 1:chunkSize);
+%     [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, 1:chunkSize);
     
     %%
-    vidChunk = {videoFrame};    
+    vidChunk = {};
+    frameIdx = 0;
     while true
         [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, frameIdx(end)+(1:chunkSize));
         disp(frameIdx)
@@ -57,11 +59,11 @@ m=0;
 % newRectFcn = @adjustRectangle;
 
 
-out.getRect = @returnRoiRect;
-out.getVid = @returnVid;
-out.adjustRectangle = @adjustRectangle;
-
-out.adjustRectangle();
+rs.getRect = @returnRoiRect;
+rs.getVid = @returnVid;
+rs.adjustRectangle = @adjustRectangle;
+rs.setColors = @setColors;
+rs.adjustRectangle();
 
 
 % assignin('base','hNextDlg',hNextDlg)
@@ -80,14 +82,17 @@ out.adjustRectangle();
             nextRect = copy(roiRect(m));
         else
             defaultColor = [0.0745 0.6235 1.000];
-            nextColor = uisetcolor( defaultColor, "Next ROI Color");
+            if numel(rectColors)>= m
+                nextColor = rectColors{m};
+            else
+                nextColor = defaultColor;
+            end            
             nextRect = drawrectangle( hImsc.ax,...
                 'AspectRatio', 1,...
                 'FixedAspectRatio', true,...
                 'InteractionsAllowed', 'translate',...
                 'Label', string(m),...
                 'tag', "rectangle_" + string(m),...
-                'SelectedColor', 'g',...
                 'Color', nextColor,...
                 'Position', [100 100 rectSize]);
         end
@@ -112,5 +117,31 @@ out.adjustRectangle();
     function v = returnVid()
         v = vid;
     end
+    function setColors(numColors)
+        if nargin<1
+            numColors=numel(roiRect);
+        end
+        assert(numColors>=1,'pass number of colors to set')
+        defaultColor = [0.0745 0.6235 1.000];
+        for colorNum = 1:numColors
+            if numel(roiRect) >= colorNum && isa(roiRect(colorNum),'images.roi.Rectangle')
+                nextColor = uisetcolor( roiRect(colorNum).Color, "Next ROI Color");
+                roiRect(colorNum).Color = nextColor;
+            elseif numel(rectColors) >=colorNum
+                nextColor = uisetcolor( rectColors{colorNum}, "Next ROI Color");
+            else
+                nextColor = uisetcolor( defaultColor, "Next ROI Color");
+            end            
+            rectColors{colorNum} = nextColor;
+        end
+        
+    end
+
 
 end
+
+
+
+
+
+
