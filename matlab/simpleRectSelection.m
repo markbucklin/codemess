@@ -11,6 +11,8 @@ if nargin < 3
     rectSize = [64 64];
 end
 
+% todo: numframes or refactor out
+maxNumFrames = 300;
 
 if isempty(vidToDisplay)
     %%
@@ -19,11 +21,14 @@ if isempty(vidToDisplay)
     [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, 1:chunkSize);
     
     %%
-    vidChunk = {videoFrame};
-    while ~streamFinishedFlag
+    vidChunk = {videoFrame};    
+    while true
         [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, frameIdx(end)+(1:chunkSize));
         disp(frameIdx)
         vidChunk{end+1} = videoFrame;
+        if streamFinishedFlag || frameIdx(end) >= maxNumFrames
+            break
+        end
     end
     
     %%
@@ -32,7 +37,7 @@ if isempty(vidToDisplay)
     %%
     
     
-    vid.original = cat(3,vid.frame(1:300).Data);
+    vid.original = cat(3,vid.frame.Data);
     vid.min = min(vid.original,[],3);
     vid.minsmooth = imgaussfilt(vid.min,15);
     vid.minsubtract = vid.original - vid.minsmooth;
