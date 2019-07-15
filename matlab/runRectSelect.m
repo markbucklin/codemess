@@ -1,10 +1,27 @@
 %%
-rs = simpleRectSelection();
+
+sessionNum = 0;
+sessionRoi = {};
+outputFilename = ['selected-rect-rois.',datestr(now,'YYYYmmDD_HHMM'),'.json'];
+sessionOutFid = fopen(outputFilename,'w');
+
+%%
+
+sessionNum = sessionNum + 1;
+roiRect = images.roi.Rectangle.empty();
+rs = simpleRectSelection(roiRect);
+
+%%
+roiRect = rs.getRect();
+vid = rs.getVid();
+roi = getRectRoiData(roiRect, vid);
 
 
-wait
-rd(1).rect = rs.getRect();
-rd(1).vid = rs.getVid();
+sessionOutput = struct('filesrc',vid.filesrc,'position',{roiRect.Position}');
+sessionRoi{end+1} = roi;
+
+sessionOutStr = jsonencode(sessionOutput);
+fwrite(sessionOutFid,sessionOutStr);
 
 % selectedRect = findobj(rd.rect, 'Selected', 1)
 % bw = createMask(selectedRect(1), 1024, 1024);
@@ -15,43 +32,4 @@ rd(1).vid = rs.getVid();
 
 %%
 
-
-M = numel(rd.rect);
-numFrames = numel(rd.vid.frame);
-numPixels = 1024*1024;
-
-roi = struct.empty(0,M);
-
-
-for m = 1:M    
-    rect = rd.rect(m);
-    
-    % extract trace from video
-    bw = createMask(rect, 1024,1024);            
-    framePxIdx = find(bw);
-    numPxIdx = numel(framePxIdx);
-    vidPxIdx = framePxIdx + (0:numFrames-1)*numPixels;
-    cdata = reshape(rd.vid.original(vidPxIdx), numPxIdx, []);    
-    
-    % normalize video data and get trace
-    vdata = single(cdata);
-    vmin = min(vdata,[],1);
-    vmax = max(vdata,[],1);
-    vrange = max(vmax,[],ndims(vdata)) - vmin;
-    vdata = (vdata - vmin).*(1./vrange);
-    vmaxk = maxk(vdata,16,1); % todo
-    vtrace = mean( vmaxk, 1);
-    
-    % assign data into structure for each roi
-    roi(m).rect = rect;
-    roi(m).mask = bw;
-    roi(m).cdata = cdata;
-    roi(m).vdata = reshape( vdata , 64, 64, []);
-    roi(m).vtrace = vtrace(:);
-end
-
-%%
-plot([roi.vtrace])
-
-
-imscplay(cat(1, roi.vdata))
+fclose(sessionOutFid);

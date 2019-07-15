@@ -1,5 +1,6 @@
 function rs = simpleRectSelection(roiRect, vidToDisplay, rectSize)
 
+% WIP
 
 if nargin < 1 || isempty(roiRect)
     roiRect = images.roi.Rectangle.empty();
@@ -19,11 +20,16 @@ if isempty(vidToDisplay)
     %%
     chunkSize=8;
     [config,control,state] = ignition.io.tiff.initializeTiffFileStream();
+    warning('off','MATLAB:structOnObject');
+    vid.filesrc = struct(config.fileInputObj);
+    %     vid.datasetname = string(config.fileInputObj.DataSetName);
+    %     vid.filename = string(config.fileInputObj.FileName);
+    %     vid.filepath = string(config.fileInputObj.FullFilePath);
 %     [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, 1:chunkSize);
     
     %%
     vidChunk = {};
-    frameIdx = 0;
+    frameIdx = 0;   
     while true
         [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, frameIdx(end)+(1:chunkSize));
         disp(frameIdx)
@@ -63,19 +69,19 @@ rs.getRect = @returnRoiRect;
 rs.getVid = @returnVid;
 rs.adjustRectangle = @adjustRectangle;
 rs.setColors = @setColors;
-rs.adjustRectangle();
-
+% rs.adjustRectangle();
+hDlg = createDialog();
 
 % assignin('base','hNextDlg',hNextDlg)
 
-%     function hdlg = createDialog()
-%         hdlg = msgbox('click when ready for next', 'next roi', 'none',...
-%             'non-modal',...
-%             'ButtonDownFcn', newRectFcn);
-%     end
+    function hDlg = createDialog()
+        hDlg = msgbox('click when ready for next', 'next roi', 'none','replace');
+        okbutton = findobj(hDlg.Children, 'Style','pushbutton');
+        set(okbutton, 'Callback', @(varargin)adjustRectangle());
+    end
 
 
-    function hdlg = adjustRectangle()
+    function adjustRectangle()
         disp 'adjusting rectangle'
         m = m + 1;
         if numel(roiRect) >= m && isa(roiRect(m),'images.roi.Rectangle')
@@ -98,20 +104,17 @@ rs.adjustRectangle();
         end
         
         roiRect(m) = nextRect;
-        
-        hdlg = msgbox('click when ready for next', 'next roi', 'none','replace');
-        okbutton = findobj(hdlg.Children, 'Style','pushbutton');
-        set(okbutton, 'Callback', @(varargin)adjustRectangle());
-        
-        
-        %         hdlg = createDialog();
-        % hdlg = msgbox('click when ready for next', 'next roi', 'none',...
-        %             'non-modal',...
-        %             'ButtonDownFcn', @(varargin)adjustRectangle());
+        hDlg = createDialog();
+%         hdlg = msgbox('click when ready for next', 'next roi', 'none','replace');
+%         okbutton = findobj(hdlg.Children, 'Style','pushbutton');
+%         set(okbutton, 'Callback', @(varargin)adjustRectangle());
         
     end
 
     function roi = returnRoiRect()
+        for k=1:length(roiRect)
+            roiRect(k).Position = floor(roiRect(k).Position);
+        end
         roi = roiRect;
     end
     function v = returnVid()
