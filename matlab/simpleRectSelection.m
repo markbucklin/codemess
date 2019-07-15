@@ -12,7 +12,7 @@ if nargin < 3
 end
 
 % todo: numframes or refactor out
-maxNumFrames = 300;
+maxNumFrames = 800;
 
 if isempty(vidToDisplay)
     %%
