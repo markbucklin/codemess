@@ -15,12 +15,12 @@ classdef LinkedRegion
 		MinorAxisLength(1,1) single
 		Eccentricity(1,1) single
 		Orientation(1,1) single
-		Image @logical matrix
-		Extrema @single matrix
+		Image(:,:) logical
+		Extrema(:,:) single
 		EquivDiameter(1,1) single
 		Extent(1,1) single
 		PixelIdxList(:,1) uint32
-		PixelList @uint32 matrix
+		PixelList(:,:) uint32
 		Perimeter(1,1) single
 	end
 	
