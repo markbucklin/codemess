@@ -24,10 +24,10 @@ classdef TonePuffSystem < SubSystem
 	  frameSyncObj
    end
    properties
-	  toneObj@NiClockedTriggeredOutput scalar
-	  puffObj@NiClockedTriggeredOutput scalar
-	  strobeObj@NiClockedTriggeredOutput scalar
-	  stimulusSet@cell vector
+	  toneObj(1,1) NiClockedTriggeredOutput
+	  puffObj(1,1) NiClockedTriggeredOutput
+	  strobeObj(1,1) NiClockedTriggeredOutput
+	  stimulusSet(:,1) cell
 	  currentStimulusNumber = 0
 	  currentTrialNumber = 0
 	  frameClkSession@daq.ni.Session
