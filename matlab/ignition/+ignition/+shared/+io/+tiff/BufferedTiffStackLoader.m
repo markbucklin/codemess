@@ -43,7 +43,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  BufferedTiffStackLoad
 		NextBufferIdx = 0
 	end
 	properties (SetAccess = ?ignition.system.SystemInterface)		
-		IsFinished @logical scalar = false
+		IsFinished(1,1) logical = false
 		IsLastFile = false;
 	end
 	
@@ -60,7 +60,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  BufferedTiffStackLoad
 	
 	% TIFF-STACK -FILE & -FRAME INFO
 	properties (SetAccess = ?ignition.system.SystemInterface, Nontunable)
-		TiffObj @Tiff vector
+		TiffObj(:,1) Tiff
 		StackInfo
 		FileInfo
 		TagIDs

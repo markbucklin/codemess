@@ -12,7 +12,7 @@ classdef RegionPropagation  <  ImageRegion  &  matlab.mixin.Copyable
 	
 	% UNIQUE IDENTIFIER & UID LINKS
 	properties (SetAccess = protected, Hidden)
-		UID @uint32 scalar		
+		UID(1,1) uint32		
 	end
 	
 	

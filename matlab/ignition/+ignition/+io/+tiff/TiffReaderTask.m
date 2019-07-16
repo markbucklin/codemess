@@ -24,7 +24,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	% STATE
 	properties (SetAccess = ?ignition.core.Handle)
-		StreamFinishedFlag @logical scalar = false
+		StreamFinishedFlag(1,1) logical = false
 		CurrentFrameIdx
 	end
 	

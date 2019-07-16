@@ -33,8 +33,8 @@ classdef (CaseInsensitiveProperties = true)  TiffStackLoader <  scicadelic.SciCa
 		CurrentStepCount
 	end
 	properties (SetAccess = private)
-		InitializedFlag @logical scalar = false
-		FinishedFlag @logical scalar = false
+		InitializedFlag(1,1) logical = false
+		FinishedFlag(1,1) logical = false
 	end
 	
 	% OUTPUT
@@ -42,15 +42,15 @@ classdef (CaseInsensitiveProperties = true)  TiffStackLoader <  scicadelic.SciCa
 		FrameData
 		FrameInfo @struct
 		FrameIdx
-		FrameCompletion @logical vector % TODO
-		FileCompletion @double vector % TODO
+		FrameCompletion(:,1) logical % TODO
+		FileCompletion(:,1) double % TODO
 	end
 	
 	% TIFF FILE & FRAME INFO
 	properties (SetAccess = private, Nontunable)
-		TiffObj @Tiff vector
-		TiffInfo @struct vector
-		NumFiles @double scalar = 0
+		TiffObj(:,1) Tiff
+		TiffInfo(:,1) struct
+		NumFiles(1,1) double = 0
 		NumSteps
 		NumFrames
 		AllFrameInfo @struct

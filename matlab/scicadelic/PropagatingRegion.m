@@ -18,14 +18,14 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 	end
 	properties (SetAccess = protected, Hidden)
 		pFrameLink @cell %@FrameLinkedRegion vector
-		pFrameLinkLast @FrameLinkedRegion scalar
-		pFrameLinkIdx @uint32 vector
+		pFrameLinkLast(1,1) FrameLinkedRegion
+		pFrameLinkIdx(:,1) uint32
 	end
 	
 	
 	% HANDLES TO CONVERGING/DIVERGING/INTERSECTING SISTER REGIONS
 	properties (SetAccess = protected)
-		IntersectingRegion @PropagatingRegion vector
+		IntersectingRegion(:,1) PropagatingRegion
 		DivergenceFrameIdx
 		ConvergenceFrameIdx
 	end
@@ -34,7 +34,7 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 	properties (SetAccess = protected)
 		NumPropagation = 0
 		NumCopagation = 0		
-		Confidence @double scalar
+		Confidence(1,1) double
 	end
 	
 	% FRAME-LINKED-SUMMARY

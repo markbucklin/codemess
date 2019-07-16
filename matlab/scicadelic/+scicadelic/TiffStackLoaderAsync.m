@@ -41,8 +41,8 @@ classdef (CaseInsensitiveProperties = true)  TiffStackLoaderAsync <  scicadelic.
 		FileCompletion
 	end
 	properties (SetAccess = private)
-		InitializedFlag @logical scalar = false
-		FinishedFlag @logical scalar = false
+		InitializedFlag(1,1) logical = false
+		FinishedFlag(1,1) logical = false
 		IsLastFile = false;
 	end
 	
@@ -55,7 +55,7 @@ classdef (CaseInsensitiveProperties = true)  TiffStackLoaderAsync <  scicadelic.
 	
 	% TIFF FILE & FRAME INFO
 	properties (SetAccess = private, Nontunable)
-		TiffObj @Tiff vector
+		TiffObj(:,1) Tiff
 		FileInfo
 		NumFiles
 		NumFrames

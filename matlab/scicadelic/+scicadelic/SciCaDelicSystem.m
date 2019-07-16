@@ -14,26 +14,26 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 	
 	% USER SETTINGS
 	properties (Access = public)
-		UseGpu @logical scalar
-		UsePct @logical scalar
-		UseBuffer @logical scalar = false
-		UseInteractive @logical scalar = false
-		CheckCapabilities @logical scalar = true
+		UseGpu(1,1) logical
+		UsePct(1,1) logical
+		UseBuffer(1,1) logical = false
+		UseInteractive(1,1) logical = false
+		CheckCapabilities(1,1) logical = true
 	end
 	
 	% COMPUTER CAPABILITIES & DEFAULTS
 	properties (SetAccess = protected)
-		CanUseGpu @logical scalar
-		CanUsePct @logical scalar
-		CanUseBuffer @logical scalar
-		CanUseInteractive @logical scalar
+		CanUseGpu(1,1) logical
+		CanUsePct(1,1) logical
+		CanUseBuffer(1,1) logical
+		CanUseInteractive(1,1) logical
 	end
 	properties (SetAccess = protected)
 		Default
 	end
 	properties (SetAccess = protected, Hidden)
-		ChildSystem @cell vector
-		GpuRetrievedProps @struct scalar
+		ChildSystem(:,1) cell
+		GpuRetrievedProps(1,1) struct
 		SettableProps
 		GpuDevice
 	end
@@ -69,7 +69,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 	properties (SetAccess = protected, Hidden)
 		TuningImageDataSet
 		TuningImageIdx
-		TuningStep @struct vector
+		TuningStep(:,1) struct
 		TuningCurrentStep
 		Tuning
 		TuningFigureHandles

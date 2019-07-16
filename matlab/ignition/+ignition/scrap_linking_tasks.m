@@ -16,7 +16,7 @@
 % 	% STATE
 % 	properties (SetAccess = ?ignition.core.Task)
 % 		CurrentFrameIdx
-% 		StreamFinishedFlag @logical scalar = false
+% 		StreamFinishedFlag(1,1) logical = false
 % 	end
 
 

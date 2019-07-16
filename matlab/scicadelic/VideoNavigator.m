@@ -12,7 +12,7 @@ classdef VideoNavigator < vision.VideoPlayer
 		FrameSize
 		Handle
 		FigureNeedsUpdate
-		UseMask @logical scalar
+		UseMask(1,1) logical
 	end
 	properties (SetAccess = protected, Hidden)
 		MaskCmap

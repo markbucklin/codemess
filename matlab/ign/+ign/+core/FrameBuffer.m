@@ -23,7 +23,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		VariableCapacityIncrement = 32
 	end
 	properties (SetAccess = immutable)
-		IsFixedCapacity @logical scalar = false
+		IsFixedCapacity(1,1) logical = false
 	end
 	
 	

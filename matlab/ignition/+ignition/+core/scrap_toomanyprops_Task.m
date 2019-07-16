@@ -9,7 +9,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% TASK CONTROL
 	properties		
 		Priority = 0
-		Enabled @logical scalar = true % todo
+		Enabled(1,1) logical = true % todo
 		DispatchMethod @ignition.core.FunctionDispatchType
 	end
 	
@@ -63,10 +63,10 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% STATUS
 	properties (SetAccess = ?ignition.core.Object, Transient)		
 		State @ignition.core.TaskState
-		IsConfigured @logical scalar = false
-		IsInitialized @logical scalar = false
-		IsFinished @logical scalar = false
-		IsFinalized @logical scalar = false		
+		IsConfigured(1,1) logical = false
+		IsInitialized(1,1) logical = false
+		IsFinished(1,1) logical = false
+		IsFinalized(1,1) logical = false		
 		ErrorOutput %todo
 	end
 	

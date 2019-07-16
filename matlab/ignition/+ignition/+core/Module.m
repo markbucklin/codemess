@@ -77,7 +77,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	% STATUS
 	properties (SetAccess = ?ignition.core.Object, Transient)
-		IsInitialized @logical scalar = false
+		IsInitialized(1,1) logical = false
 	end
 	
 	% ##################################################

@@ -14,7 +14,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		Priority = 0
 	end
 	properties
-		Enabled @logical scalar = true % todo
+		Enabled(1,1) logical = true % todo
 	end
 	
 	% FUNCTION HANDLES
@@ -84,9 +84,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	properties (SetAccess = ?ignition.core.Object, Transient)
 		%'pending','queued','running','finished','failed','unavailable'.
 		State @struct %todo
-		IsConfigured @logical scalar = false
-		IsInitialized @logical scalar = false
-		IsFinished @logical scalar = false
+		IsConfigured(1,1) logical = false
+		IsInitialized(1,1) logical = false
+		IsFinished(1,1) logical = false
 		ErrorOutput %todo
 	end
 	

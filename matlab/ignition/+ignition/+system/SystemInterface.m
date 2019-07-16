@@ -38,7 +38,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) SystemInterface < matl
 		StatusTic
 	end
 	properties (SetAccess = protected, Transient)
-		IsInitialized @logical scalar = false
+		IsInitialized(1,1) logical = false
 	end
 	properties (Hidden, SetAccess = protected)
 		StatusUpdateInterval = .15

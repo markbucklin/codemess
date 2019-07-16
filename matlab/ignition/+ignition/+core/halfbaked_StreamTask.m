@@ -13,7 +13,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 		Name = ''
 	end
 	properties
-		Enabled @logical scalar = true % todo
+		Enabled(1,1) logical = true % todo
 	end
 	
 	% FUNCTION HANDLES

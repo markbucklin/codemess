@@ -7,35 +7,35 @@ classdef LinkedRegion
 	
 	% SHAPE STATISTICS
 	properties (SetAccess = protected)
-		Area @single scalar
-		Centroid @uint32 vector							% [x,y] from upper left corner
-		BoundingBox @uint32 vector
-		SubarrayIdx @cell vector
-		MajorAxisLength @single scalar
-		MinorAxisLength @single scalar
-		Eccentricity @single scalar
-		Orientation @single scalar
+		Area(1,1) single
+		Centroid(:,1) uint32							% [x,y] from upper left corner
+		BoundingBox(:,1) uint32
+		SubarrayIdx(:,1) cell
+		MajorAxisLength(1,1) single
+		MinorAxisLength(1,1) single
+		Eccentricity(1,1) single
+		Orientation(1,1) single
 		Image @logical matrix
 		Extrema @single matrix
-		EquivDiameter @single scalar
-		Extent @single scalar
-		PixelIdxList @uint32 vector
+		EquivDiameter(1,1) single
+		Extent(1,1) single
+		PixelIdxList(:,1) uint32
 		PixelList @uint32 matrix
-		Perimeter @single scalar
+		Perimeter(1,1) single
 	end
 	
 	% PIXEL-VALUE STATISTICS
 	properties (SetAccess = protected)
-		WeightedCentroid @single vector
-		PixelValues @uint16 vector
-		MaxIntensity @uint16 scalar
-		MinIntensity @uint16 scalar
-		MeanIntensity @single scalar
+		WeightedCentroid(:,1) single
+		PixelValues(:,1) uint16
+		MaxIntensity(1,1) uint16
+		MinIntensity(1,1) uint16
+		MeanIntensity(1,1) single
 	end
 	
 	% OTHER DESCRIPTIVE PROPERTIES
 	properties (SetAccess = protected)
-		FrameIdx @uint32 scalar
+		FrameIdx(1,1) uint32
 	end
 	
 	% CONSTANTS AND SETTINGS
@@ -52,9 +52,9 @@ classdef LinkedRegion
 	
 	% UNIQUE IDENTIFIER & UID LINKS
 	properties (SetAccess = protected, Hidden)
-		UID @uint32 scalar
-		NextRegionUID @uint32 scalar
-		PrecedingRegionUID @uint32 scalar
+		UID(1,1) uint32
+		NextRegionUID(1,1) uint32
+		PrecedingRegionUID(1,1) uint32
 	end
 	
 	

@@ -4,7 +4,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	
 	properties
-		FixedCapacity @logical scalar = true
+		FixedCapacity(1,1) logical = true
 	end
 	properties (SetAccess = protected)
 		LastWriteIdx = 0

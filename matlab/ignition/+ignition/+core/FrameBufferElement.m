@@ -8,9 +8,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	properties (SetAccess = {?ignition.core.FrameBuffer,?ignition.core.FrameBufferElement})
 		Data
-		IsUnread @logical scalar = false
-		IsLocked @logical scalar = false % todo
-		RequiresReadLock @logical scalar = false % todo
+		IsUnread(1,1) logical = false
+		IsLocked(1,1) logical = false % todo
+		RequiresReadLock(1,1) logical = false % todo
 		ReadLockCount = 0; % todo
 	end
 	

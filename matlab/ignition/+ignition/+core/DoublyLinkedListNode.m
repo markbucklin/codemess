@@ -4,8 +4,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	
 	properties (Transient, SetAccess = ?ignition.core.Object)
-		Next @handle scalar
-		Previous @handle scalar
+		Next(1,1) handle
+		Previous(1,1) handle
 		Value
 	end
 	

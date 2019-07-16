@@ -18,7 +18,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% CONTROL
 	properties
 		Priority = 0
-		Enabled @logical scalar = false % todo
+		Enabled(1,1) logical = false % todo
 		DispatchMethod @ignition.core.FunctionDispatchType
 	end
 	

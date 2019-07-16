@@ -41,8 +41,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  BufferedTiffStackLoad
 		NextBufferIdx = 0
 	end
 	properties (SetAccess = ?scicadelic.System)
-		InitializedFlag @logical scalar = false
-		FinishedFlag @logical scalar = false
+		InitializedFlag(1,1) logical = false
+		FinishedFlag(1,1) logical = false
 		IsLastFile = false;
 	end
 	
@@ -56,7 +56,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  BufferedTiffStackLoad
 	
 	% TIFF-STACK -FILE & -FRAME INFO
 	properties (SetAccess = ?scicadelic.System, Nontunable)
-		TiffObj @Tiff vector
+		TiffObj(:,1) Tiff
 		StackInfo
 		FileInfo
 		TagIDs
