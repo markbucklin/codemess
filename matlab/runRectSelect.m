@@ -30,6 +30,10 @@ fwrite(sessionOutFid,sessionOutStr);
 % bw = bw | createMask(selectedRect(n), 1024, 1024);
 % end
 
+
+%plot(cat(2,sessionRoi{1,1}.vtrace))
+%implay(cat(1,roi.vdata))
+
 %%
 
 fclose(sessionOutFid);

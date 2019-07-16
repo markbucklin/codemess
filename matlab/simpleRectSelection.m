@@ -120,6 +120,7 @@ hDlg = createDialog();
     function v = returnVid()
         v = vid;
     end
+
     function setColors(numColors)
         if nargin<1
             numColors=numel(roiRect);
