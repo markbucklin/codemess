@@ -34,8 +34,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	% INPUT/OUTPUT DESCRIPTION
 	properties (SetAccess = protected)			
-		Configuration @struct
-		Cache @struct
+		Configuration struct
+		Cache struct
 		InputArguments @cell
 		OutputArguments @cell
 		NumInputArguments = 0

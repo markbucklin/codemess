@@ -41,8 +41,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	properties (SetAccess = protected) % Hidden
 		TaskList @ignition.core.Task
 		LinkList @ignition.core.tasks.TaskLink
-		TaskData @struct
-		TaskConfiguration @struct
+		TaskData struct
+		TaskConfiguration struct
 		ConfigurationInterface
 		ControlInterface
 		StateInterface

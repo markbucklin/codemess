@@ -12,7 +12,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		ParentTaskObj
 		PropertyList @ignition.core.TaskProperty	
 		PropertyMap @containers.Map
-		PropertyStruct @struct
+		PropertyStruct struct
 		NewPropertyDataListener @event.proplistener
 	end
 	

@@ -15,8 +15,8 @@ classdef (CaseInsensitiveProperties = true) RegionPropagator < scicadelic.SciCaD
 	
 	% OUTPUTS
 	properties (SetAccess = protected)
-		ImageRegionReference @struct
-		ImageRegionCurrentMatch @struct
+		ImageRegionReference struct
+		ImageRegionCurrentMatch struct
 		LabelMatrix
 		GroupMotionEstimate %consensus?
 		MatchMotionVector
@@ -43,7 +43,7 @@ classdef (CaseInsensitiveProperties = true) RegionPropagator < scicadelic.SciCaD
 		RegionIncidence
 		RegionIndex
 		RegionFirstFrame
-		% 		ImageRegionAll @struct
+		% 		ImageRegionAll struct
 		% 		ImageRegionIdx
 		% 		ImageRegionFrameIdx
 	end

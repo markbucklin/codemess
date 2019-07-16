@@ -13,8 +13,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	
 	
 	properties (SetAccess = protected)
-		Configuration @struct
-		Cache @struct
+		Configuration struct
+		Cache struct
 		ConfigurationInputProperties @cell
 	end
 	

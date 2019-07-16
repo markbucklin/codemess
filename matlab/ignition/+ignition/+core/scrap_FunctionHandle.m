@@ -6,8 +6,8 @@ classdef (Sealed) FunctionHandle < ignition.core.Object & handle & matlab.mixin.
 	
 	properties (SetAccess=immutable)
 		FunctionString = ''
-		NumInputs @struct
-		NumOutputs @struct
+		NumInputs struct
+		NumOutputs struct
 		
 		
 		IsVariableInput @logical

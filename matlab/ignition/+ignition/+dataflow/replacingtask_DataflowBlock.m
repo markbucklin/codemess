@@ -36,8 +36,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		CachePostUpdateFcn @function_handle
 	end
 	properties (SetAccess = protected) % Hidden
-		Cache @struct
-		Configuration @struct
+		Cache struct
+		Configuration struct
 	end
 	% 	properties (SetAccess = protected) % Hidden
 	% 		CacheObj @ignition.dataflow.Cache

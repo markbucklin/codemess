@@ -2,13 +2,13 @@ classdef StructAccessRecorder < handle & dynamicprops
 	
 	
 	properties (SetAccess = protected, Hidden)
-		StructInternal @struct
+		StructInternal struct
 		FieldWriteCount = []
 		FieldReadCount = []
 		FieldWriteFlag @logical
 		FieldReadFlag @logical
 		FieldNameList @cell
-		FieldRecordIdx @struct
+		FieldRecordIdx struct
 		PropReadListener @event.proplistener
 		PropWriteListener @event.proplistener
 	end

@@ -14,7 +14,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties, HandleCompatible)...
 	
 	properties (SetAccess = ?ignition.core.Object, AbortSet)
 		Data
-		Info @struct
+		Info struct
 	end
 	properties (SetAccess = ?ignition.core.Object, AbortSet)
 		NumRows

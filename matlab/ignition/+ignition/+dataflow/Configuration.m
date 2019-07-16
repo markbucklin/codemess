@@ -10,7 +10,7 @@ classdef Configuration < ignition.core.Object & handle
 			Function @function_handle
 		end
 		properties (SetAccess = protected, SetObservable)
-			Output @struct
+			Output struct
 		end
 		
 		

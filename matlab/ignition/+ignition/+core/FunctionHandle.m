@@ -164,8 +164,8 @@ end
 % properties
 % NumInputs @double
 % NumOutputs @double
-% NumInputs @struct  = struct('min',inf,'max',-1,'last',nan)
-% NumOutputs @struct = struct('min',inf,'max',-1,'last',nan)
+% NumInputs struct  = struct('min',inf,'max',-1,'last',nan)
+% NumOutputs struct = struct('min',inf,'max',-1,'last',nan)
 % end
 
 

@@ -47,8 +47,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% INPUT/OUTPUT
 	properties (SetAccess = protected)				
 		
-		TaskConfiguration @struct		
-		TaskStorage @struct % TaskData InitData
+		TaskConfiguration struct		
+		TaskStorage struct % TaskData InitData
 		
 		InputArguments @cell
 		OutputArguments @cell
@@ -83,7 +83,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% STATUS
 	properties (SetAccess = ?ignition.core.Object, Transient)
 		%'pending','queued','running','finished','failed','unavailable'.
-		State @struct %todo
+		State struct %todo
 		IsConfigured(1,1) logical = false
 		IsInitialized(1,1) logical = false
 		IsFinished(1,1) logical = false

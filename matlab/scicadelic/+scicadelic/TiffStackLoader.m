@@ -40,7 +40,7 @@ classdef (CaseInsensitiveProperties = true)  TiffStackLoader <  scicadelic.SciCa
 	% OUTPUT
 	properties (SetAccess = private)
 		FrameData
-		FrameInfo @struct
+		FrameInfo struct
 		FrameIdx
 		FrameCompletion(:,1) logical % TODO
 		FileCompletion(:,1) double % TODO
@@ -53,9 +53,9 @@ classdef (CaseInsensitiveProperties = true)  TiffStackLoader <  scicadelic.SciCa
 		NumFiles(1,1) double = 0
 		NumSteps
 		NumFrames
-		AllFrameInfo @struct
-		CachedFrameInfo @struct
-		FileFrameIdx @struct
+		AllFrameInfo struct
+		CachedFrameInfo struct
+		FileFrameIdx struct
 	end
 	
 	% PARALLEL COMPUTING PROPS

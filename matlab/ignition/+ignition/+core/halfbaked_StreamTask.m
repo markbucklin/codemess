@@ -25,7 +25,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 	
 	% INPUT/OUTPUT
 	properties (SetAccess = protected)
-		Configuration @struct
+		Configuration struct
 		State
 		NumInputChannels = 0
 		NumOutputChannels = 0

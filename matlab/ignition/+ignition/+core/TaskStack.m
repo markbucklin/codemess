@@ -23,7 +23,7 @@ classdef TaskStack < ignition.core.Object & handle
 			% DependentTaskInputIdx
 		end
 		properties (SetAccess = protected, SetObservable)
-			Cache @struct
+			Cache struct
 		end
 		
 		% ConstantCache

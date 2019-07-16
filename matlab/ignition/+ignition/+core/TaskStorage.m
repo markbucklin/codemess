@@ -15,7 +15,7 @@ classdef TaskStorage < ignition.core.object & handle
 			DependentTaskInputIdx
 		end
 		properties (SetAccess = protected, SetObservable)
-			Storage @struct
+			Storage struct
 		end
 		
 		% ConstantCache
