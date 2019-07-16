@@ -4,21 +4,21 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		& ignition.core.UniquelyIdentifiable
 	%Task Reference to properties of current computational environment
 	%   TODO:Details
-	
-	
-	
+
+
+
 	% CONFIGURATION
-	properties		
+	properties
 	end
 	%Configuration @ignition.core.TaskConfiguration
-	
+
 	% STATE
 	properties
-		State @ignition.core.TaskState
+		State ignition.core.TaskState
 	end
-	
+
 	% STACK
-	properties (SetAccess = protected)		
+	properties (SetAccess = protected)
 		Stack
 	end
 	%Stack @ignition.core.TaskStack
@@ -30,36 +30,36 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				% -> Stack.taskid
 				% -> Stack.performance
 				% -----> (perhaps) should all be defined in (derived) TaskExecutor
-				
-	
+
+
 	% TASK I/O
 	properties (SetAccess = protected)
 		%InputArguments @cell
 		%OutputArguments @cell
 	end
-	
+
 	% TASK DEPENDENCIES
 	properties (SetAccess = protected)
-		InputDependencyObj @ignition.core.Dependency
-		PropDependencyObj @containers.Map % todo -> get rid?? or construct listeners
-		OutputDependencyObj @ignition.core.Dependency
+		InputDependencyObj ignition.core.Dependency
+		PropDependencyObj containers.Map % todo -> get rid?? or construct listeners
+		OutputDependencyObj ignition.core.Dependency
 	end
-	
+
 	properties (SetAccess = protected)
 		%OutputRequestedFlag @logical % unneccessary?
 		%OutputAvailableFlag @logical
 	end
-	
-	
-	
-	
-	
-	
-	
 
-	
-		
-	
+
+
+
+
+
+
+
+
+
+
 	methods
 		% CONSTRUCTOR
 		function obj = Task(fcn, varargin)
@@ -67,60 +67,60 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			% Usage:
 			%			>> obj = ignition.core.Task( operationHandle );
 			%
-			
+
 			% CALL SUPERCLASS CONSTRUCTOR
 			obj = obj@ignition.core.Operation(fcn);
 			% obj = obj@ignition.core.Operation(fcn, varargin{:});
-			% may need 
+			% may need
 			%			superclassArgsIn = [{fcn} , varargin];
 			%			obj = obj@ignition.core.Operation(superclassArgsIn{:});
-			
+
 			% ASSIGN OPERATION HANDLE
 			if (nargin > 1)
 				parseConstructorInput(obj, varargin{:});
 			end
 		end
-		
+
 		% ADD CONFIGURATION TASK
 		% configTaskObj = addConfigurationTask(obj, configFcn)
 		% configTaskObj = configureUsing(obj, configFcn)
-		
+
 		% ADD INITIALIZATION TASK
 		% initTaskObj = addInitializationTask(obj, initFcn)
 		% initTaskObj = initializeUsing(obj, initFcn)
-		
+
 		% ADD STATE UPDATE TASK -> { 'pre', 'post', 'concurrent'?}
-				
+
 		% ADD FEEDBACK DEPENDENCY
-		
+
 		% SPECIFY REQUIRED (UPSTREAM) DEPENDENCIES
 		function require(obj, requiredTaskObj, whatIsRequired, inputDest)
-			
-			
+
+
 			% DEFAULT REQUIREMENT SOURCE IS FIRST OUTPUT ARGUMENT (IDX=1)
 			if (nargin < 3) || isempty(whatIsRequired)
 				whatIsRequired = 1;
 			end
-			
+
 			if nargin < 4
 				inputDest = numel(obj.InputDependencyObj) + (1:numel(whatIsRequired));
 			end
-			
+
 			% CALL MORE SPECIFIC METHOD BASED ON WHAT OUTPUT IS REQUIRED
 			if isnumeric(whatIsRequired)
-				requireOutputFrom(obj, requiredTaskObj, whatIsRequired, inputDest)				
-				
+				requireOutputFrom(obj, requiredTaskObj, whatIsRequired, inputDest)
+
 			else
 				requirePropFrom(obj, requiredTaskObj, whatIsRequired, inputDest)
 			end
-			
+
 		end
 		function requireOutputFrom(obj, requiredTaskObj, outputIdx, inputDest)
 			% dependentTask - task object consuming input from requiredTask
 			% requiredTask - task producing output for dependentTask
 			% outputIdx - the output argument idx(s) of the function run by requiredTask
 			% inputIdx - the input argument idx(s) of the function run by requiredTask
-			
+
 			% IF INPUT/OUTPUT ARGUMENT INDICES NOT SPECIFIED -> DEFAULT TO 1
 			if nargin < 4
 				if nargin < 3
@@ -128,34 +128,34 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				end
 				inputDest = 1:numel(outputIdx);
 			end
-			
-			% UPDATE NUM-OUTPUT-ARGS FOR REQUIRED-TASK-OBJECT			
+
+			% UPDATE NUM-OUTPUT-ARGS FOR REQUIRED-TASK-OBJECT
 			requiredTaskObj.NumOutputArguments = max(...
 				requiredTaskObj.NumOutputArguments, max(outputIdx(:)));
-			
+
 			% UPDATE NUM-INPUT-ARGS FOR DEPENDENT-TASK-OBJECT
 			%obj.NumInputArguments = max( obj.NumInputArguments, max(inputIdx(:)));
 			% UPDATE NUM-INPUT-ARGS FOR DEPENDENT-TASK-OBJECT IF NUMERIC INPUT-DESTINATION
 			if isnumeric(inputDest)
 				obj.NumInputArguments = max( obj.NumInputArguments, max(inputDest(:)));
 			end
-			
+
 			% CONSTRUCT DEPENDENCY OBJECT
 			%dependencyObj = ignition.core.InputDependency(...
-			%	obj, inputIdx, requiredTaskObj, outputIdx);			
+			%	obj, inputIdx, requiredTaskObj, outputIdx);
 			dependencyObj = ignition.core.Dependency.buildDependency(...
 				obj, inputDest, requiredTaskObj, outputIdx);
-			
+
 			% ADD HANDLES TO DEPENDENT & REQUIRED TASK-OBJECTS
 			addDependency(obj, dependencyObj, inputDest);
 			registerOutputDependency(requiredTaskObj, dependencyObj);
-			
+
 		end
 		function requirePropFrom(obj, requiredTaskObj, requiredProp, inputDest)
-		%function bindDependentPropertySource(obj, requiredTaskObj, requiredProp, inputDest)% 
+		%function bindDependentPropertySource(obj, requiredTaskObj, requiredProp, inputDest)%
 			% rename StateVar?
 			% obj = dependentTaskObj
-			
+
 			% IF INPUT/OUTPUT ARGUMENT INDICES NOT SPECIFIED -> DEFAULT TO SAME STATE
 			if nargin < 3
 				requiredProp = {'Stack'};
@@ -164,20 +164,20 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				inputDest = requiredProp;
 				% todo -> check isprop(inputDest)
 			end
-			
+
 			% UPDATE NUM-INPUT-ARGS FOR DEPENDENT-TASK-OBJECT IF NUMERIC INPUT-DESTINATION
 			if isnumeric(inputDest)
 				obj.NumInputArguments = max( obj.NumInputArguments, max(inputDest(:)));
 			end
-			
+
 			% CONSTRUCT DEPENDENCY OBJECT
 			dependencyObj = ignition.core.Dependency.buildDependency(...
 				obj, inputDest, requiredTaskObj, requiredProp);
-			
+
 			% ADD HANDLES TO DEPENDENT & REQUIRED TASK-OBJECTS
 			addDependency(obj, dependencyObj, inputDest);
 			registerOutputDependency(requiredTaskObj, dependencyObj);
-			
+
 		end
 		function requireOutputFromAny(obj, requiredTaskObjList, outputIdx, inputIdx)
 			% IF INPUT/OUTPUT ARGUMENT INDICES NOT SPECIFIED -> DEFAULT TO 1
@@ -185,51 +185,51 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			if (nargin < 3) || isempty(outputIdx)
 				outputIdx = num2cell(ones(1,numReqTasks));
 			end
-			if nargin < 4				
+			if nargin < 4
 				inputIdx = 1:(max(1,numel(outputIdx)/numReqTasks));
 			end
 			assert( iscell(outputIdx) && (numel(outputIdx)==numReqTasks) )
-			
+
 			% UPDATE NUM-INPUT-ARGS FOR DEPENDENT-TASK-OBJECT
 			obj.NumInputArguments = max( obj.NumInputArguments, max(inputIdx(:)));
-			
-			% UPDATE NUM-OUTPUT-ARGS FOR REQUIRED-TASK-OBJECT			
+
+			% UPDATE NUM-OUTPUT-ARGS FOR REQUIRED-TASK-OBJECT
 			newNumOut = cellfun( @max, {requiredTaskObjList.NumOutputArguments}, ...
 				cellfun(@max, outputIdx, 'UniformOutput', false), 'UniformOutput', false);
 			[requiredTaskObjList.NumOutputArguments] = newNumOut{:};
-			
+
 			% CONSTRUCT DEPENDENCY OBJECT
 			dependencyObj = ignition.core.InputDependency(...
 				obj, inputIdx, requiredTaskObjList, outputIdx);
-			
+
 			% ADD HANDLES TO DEPENDENT & REQUIRED TASK-OBJECTS
 			addInputDependency(obj, dependencyObj, inputIdx);
-			
+
 			for kSrc = 1:numReqTasks
 				reqTask = requiredTaskObjList(kSrc);
 				registerOutputDependency(reqTask, dependencyObj);
 			end
-			
-		end		
-		
+
+		end
+
 		% SPECIFY DEPENDENT (DOWNSTREAM) TASKS
 		function bindOutputTarget(obj, targetTaskObj, targetDest, outputIdx)
-			
+
 		end
 		% --> .NET Observable --> subscribe()		----> "PUSH"-Based Design
-		
+
 		% BIND INPUT BY ADDING DEPENDENCY OBJECT TO DOWNSTREAM (DEPENDENT) TASK
 		function addDependency(obj, dependencyObj, inputDest)
-			
+
 			if isnumeric(inputDest)
 				addInputDependency(obj, dependencyObj, inputDest);
 			else
 				addPropDependency(obj, dependencyObj, inputDest);
 			end
-			
+
 		end
 		function addPropDependency(obj, dependencyObj, propName)
-			
+
 			if ~iscellstr(propName)
 				propName = {propName};
 			end
@@ -237,30 +237,30 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				propName = propName{kProp};
 				obj.PropDependencyObj(propName) = dependencyObj;
 			end
-			
+
 		end
 		function addInputDependency(obj, dependencyObj, inputIdx)
-			
+
 			if (nargin < 3)
 				inputIdx = [dependencyObj.DependentInputIdx];
 			end
 			if isempty(inputIdx)
 				inputIdx = 1:numel(dependencyObj);
 			end
-			
+
 			if (numel(obj.InputDependencyObj) >= max(inputIdx)) ...
 					&& ~isempty(obj.InputDependencyObj(inputIdx))
 				% todo: replace current dependency or allow for variable source
 			else
 				obj.InputDependencyObj(inputIdx) = dependencyObj; % todo: deal()??
 			end
-			
+
 		end
-		
+
 		% BIND OUTPUT BY ADDING DEPENDENCY OBJECT TO UPSTREAM (REQUIRED) TASK
 		function registerOutputDependency(obj, dependencyObj)
 			% Add dependency that indicates downstream tasks (output)
-			
+
 			% RECURSIVE CALL FOR MULTIPLE-TASK ASSIGNMENT
 			if numel(obj)>1
 				for k=1:numel(obj)
@@ -268,64 +268,64 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				end
 				return
 			end
-			
+
 			% CONCATENATE WITH CURRENT DEPENDENCY-OBJECTS (OR EMPTY ARRAY)
 			dependencyObj = [obj.OutputDependencyObj, dependencyObj];
-			
+
 			% REMOVE ANY EMPTY/INVALID OUTPUT DEPENDENCIES
 			dependencyObj = dependencyObj(...
 				~isempty(dependencyObj));
 			dependencyObj = dependencyObj(isvalid(...
-				dependencyObj));					
-			
+				dependencyObj));
+
 			% STORE HANDLE OF CONCATENATED LIST
 			obj.OutputDependencyObj = dependencyObj;
-			
+
 		end
-		
-		
+
+
 		function [execFcn, taskGraph] = getExecutionChain(obj, mode)
-			
+
 			if nargin < 2
 				mode = 'upstream';
 			end
-			
+
 			if strcmpi(mode(1:2), 'up')
-				
+
 			else
-				
+
 			end
-			
+
 			%for kTask=1:numel(obj)
 			while true
 				depTask = obj;
 				depFcn = depTask.Function;
 				depArgsIn = cell(1,depTask.NumInputArguments);
-				
+
 				allInputDep = depTask.InputDependencyObj;
 				for kReq = 1:numel(allInputDep)
 					dep = allInputDep(kReq);
 					reqObj = dep.RequiredTaskObj;
 					depIdx = dep.DependentInputIdx;
 					reqIdx = dep.RequiredOutputIdx;
-					
+
 					%get fcn ->
 					%		argsOut = cell(1,reqObj.NumOutputArgument);
 					%		[argsOut{:}] = feval( reqObj, reqObj.NumOutputArguments, argsIn{:});
 					% argsIn = next argsOut( next argsoutidx)
-					
+
 				end
-				
+
 			end
-			
-			
+
+
 		end
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 		%
 		% 		% CONTROL
 		% 		function setTaskOutput(obj, taskOutput)
@@ -374,30 +374,30 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		% 		function cache = getCacheStruct(obj)
 		% 		end
 		%
-		
+
 	end
 	methods (Hidden)
-		
+
 	end
 	methods (Static, Hidden)
-		
+
 	end
-	
+
 % 	function initializeTaskIO( obj )
-% 	
+%
 % 	op = obj.FunctionHandle;
 % 	if isempty(op)
 % 		return
 % 	end
-% 	
+%
 % 	% todo
 % 	obj.NumInputArguments = op.NumInputs;
 % 	obj.InputArguments = cell(1,op.NumInputs);
 % 	obj.NumOutputArguments = op.NumOutputs;
 % 	obj.OutputArguments = cell(1,op.NumOutputs);
-% 	
+%
 % 	end
-	
+
 	% addInitialRequirement
 	% addInitialDependency
 	% addDirectOutput
@@ -415,13 +415,13 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% requireDirectInput
 	% requireStreamInput
 	% requireBufferedInput
-	
+
 	% requirePropDependency
 	% requireStreamDependency
 	% requireCacheDependency
 	% requireDirectDependency
 	% requireInitDependency
-	
+
 	% createDirectStream
 	% createBufferedStream
 	% createTunableStream
@@ -440,21 +440,21 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 	% createFrameStream
 	% createLowLatencyStream
 	% createOffsetSuppressedStream
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	properties (Hidden)
-		InputArgumentNames @cell
-		OutputArgumentNames @cell
+		InputArgumentNames cell
+		OutputArgumentNames cell
 	end
-	
-	
-	
-	
-	
+
+
+
+
+
 end
 
 

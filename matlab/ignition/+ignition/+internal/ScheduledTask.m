@@ -1,47 +1,47 @@
 classdef (CaseInsensitiveProperties, TruncatedProperties) ScheduledTask < handle
 	%ScheduledTask Reference to properties of current computational environment
 	%   TODO:Details
-	
-	
-	
-	
+
+
+
+
 	% SETTINGS
 	properties
 		Priority
 	end
-	
+
 	% INPUT & OUTPUT
 	properties (SetAccess = protected)
-		TaskFcnHandle @function_handle
+		TaskFcnHandle function_handle
 		NumArgsOut
-		TaskInput @cell
-		TaskOutput @cell
+		TaskInput cell
+		TaskOutput cell
 		ErrorOutput
 		IsFinished = false
 	end
-	
+
 	% TIMER OBJECTS
 	properties (SetAccess = protected)
 		MatlabTimerObj
 		JavaTimerObj
 	end
-	
-	
-	
-	
+
+
+
+
 	events
 		Finished
 	end
-	
-	
-	
-	
+
+
+
+
 	methods
 		function obj = ScheduledTask( taskFcnHandle, numArgsOut, varargin)
-			
+
 			obj.JavaTimerObj = handle(com.mathworks.timer.TimerTask);
 			obj.MatlabTimerObj = timer.wrapJavaTimerObjs( obj.JavaTimerObj );
-			
+
 			obj.MatlabTimerObj.ExecutionMode = 'fixedDelay';
 			obj.MatlabTimerObj.StartDelay = .005;
 			obj.MatlabTimerObj.TasksToExecute =  2;
@@ -49,7 +49,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ScheduledTask < handle
 			obj.MatlabTimerObj.BusyMode = 'queue';
 			obj.MatlabTimerObj.ErrorFcn = @(src,evnt)logTaskError(obj,src,evnt);
 			obj.MatlabTimerObj.StopFcn = @(src,evnt)setStateFinished(obj,src,evnt);
-			
+
 			if nargin < 2
 				numArgsOut = 0;
 				% 			else
@@ -58,31 +58,31 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ScheduledTask < handle
 			if nargin > 0
 				schedule(obj, taskFcnHandle, numArgsOut, varargin{:})
 			end
-			
+
 		end
 		function schedule(obj, taskFcnHandle, numArgsOut, varargin)
-			
+
 			if nargin < 4
 				taskInput = obj.TaskInput;
 			else
 				taskInput = varargin;
 			end
-			if (nargin < 3) 
+			if (nargin < 3)
 				numArgsOut = obj.NumArgsOut;
 				if (nargin < 2)
 					taskFcnHandle = obj.TaskFcnHandle;
 				end
 			end
-			% todo: check empty		
-			
-			
+			% todo: check empty
+
+
 			obj.MatlabTimerObj.TimerFcn = @runTaskFcn;
 			start(obj.MatlabTimerObj)
-			
+
 			obj.TaskInput = taskInput;
 			obj.NumArgsOut = numArgsOut;
 			obj.TaskFcnHandle = taskFcnHandle;
-			
+
 			function runTaskFcn(src,~)
 				if src.TasksExecuted >= 1
 					if numArgsOut >= 1
@@ -94,8 +94,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ScheduledTask < handle
 						feval( taskFcnHandle, taskInput{:} );
 					end
 				end
-				
-				
+
+
 			end
 		end
 		function reschedule(obj, varargin)
@@ -106,7 +106,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ScheduledTask < handle
 			else
 				schedule(obj, obj.TaskFcnHandle, obj.NumArgsOut);
 			end
-				
+
 		end
 		function delete(obj)
 			try
@@ -142,17 +142,17 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ScheduledTask < handle
 	end
 	methods (Access = protected)
 		function logTaskError(~,~,~)
-			
+
 		end
 		function setStateFinished(obj,~,~)
 			obj.IsFinished = true;
 		end
 	end
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 end
 

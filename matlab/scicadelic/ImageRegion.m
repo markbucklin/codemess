@@ -1,66 +1,66 @@
 classdef (HandleCompatible) ImageRegion
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	% SHAPE STATISTICS
 	properties (SetAccess = protected)
-		Area @single 
-		Centroid @uint32 							% [x,y] from upper left corner
-		BoundingBox @uint32 
-		SubarrayIdx @cell 
-		MajorAxisLength @single 
-		MinorAxisLength @single 
-		Eccentricity @single 
-		Orientation @single 
-		Image @logical 
-		Extrema @single 
-		EquivDiameter @single 
-		Extent @single 
-		PixelIdxList @uint32 
-		PixelList @uint32 
-		Perimeter @single 
+		Area single
+		Centroid uint32 							% [x,y] from upper left corner
+		BoundingBox uint32
+		SubarrayIdx cell
+		MajorAxisLength single
+		MinorAxisLength single
+		Eccentricity single
+		Orientation single
+		Image logical
+		Extrema single
+		EquivDiameter single
+		Extent single
+		PixelIdxList uint32
+		PixelList uint32
+		Perimeter single
 	end
-	
+
 	% PIXEL-VALUE STATISTICS
 	properties (SetAccess = protected)
-		WeightedCentroid @single 
-		PixelValues @uint16 
-		MaxIntensity @uint16 
-		MinIntensity @uint16 
-		MeanIntensity @single 
+		WeightedCentroid single
+		PixelValues uint16
+		MaxIntensity uint16
+		MinIntensity uint16
+		MeanIntensity single
 	end
-	
+
 	% UNIQUE IDENTIFIER & UID LINKS
 	properties (SetAccess = protected, Hidden)
-		UID @uint32 
+		UID uint32
 	end
-	
+
 		% CONSTANTS AND SETTINGS
-	properties (Constant, Hidden)	
+	properties (Constant, Hidden)
 	end
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
 	% CONSTRUCTOR
 	methods
 		function obj = ImageRegion(varargin)
-			
-			if (nargin > 0)				
+
+			if (nargin > 0)
 				% ADD UNIQUE IDENTIFIER TO EACH NEW OBJECT
 				obj = addUid(obj);
 			end
-			
+
 		end
 	end
-	
+
 	% COMPARISON METHODS
 	methods
 		function doesOverlap = overlaps(r1, r2) % 300ms
@@ -81,7 +81,7 @@ classdef (HandleCompatible) ImageRegion
 				doesOverlap = any(any( bsxfun(@eq, r1.PixelIdxList, r2.PixelIdxList')));
 				return
 			end
-			
+
 			r2Area = uint32(cat(1,r2.Area));
 			r2IdxIdx = cumsum(r2Area);
 			r2PixIdx = uint32(cat(1, r2.PixelIdxList));
@@ -275,7 +275,7 @@ classdef (HandleCompatible) ImageRegion
 			if nargin < 2
 				r2 = r1;
 			end
-			
+
 			% CALCULATE XLIM & YLIM (distance from bottom left corner)
 			bb = cat(1,r2.BoundingBox);
 			r2Xlim = int16( [floor(bb(:,1)) , ceil(bb(:,1)+bb(:,3)) ]); % [LeftEdge,RightEdge] distance from left side of image
@@ -283,7 +283,7 @@ classdef (HandleCompatible) ImageRegion
 			bb = cat(1,r1.BoundingBox);
 			r1Xlim = int16( [floor(bb(:,1)) , ceil(bb(:,1)+bb(:,3)) ]);
 			r1Ylim = int16( [floor(bb(:,2)) , ceil(bb(:,2)+bb(:,4)) ]);
-			
+
 			% FOR LARGE INPUT
 			if numel(r1) > 1 || numel(r2) > 1
 				% Order in 3rd dimension is Top,Bottom,Left,Right
@@ -305,9 +305,9 @@ classdef (HandleCompatible) ImageRegion
 			else
 				n2cOut = [1 2];
 			end
-			
+
 			limDist = int16(limDist);
-			
+
 			switch nargout
 				case 1
 					varargout{1} = limDist;
@@ -322,11 +322,11 @@ classdef (HandleCompatible) ImageRegion
 				otherwise
 					varargout{1} = limDist;
 			end
-			
-			
+
+
 		end
 	end
-	
+
 	% GRAPHICAL OUTPUT METHODS
 	methods
 		function mask = createMask(obj, imSize) % 2ms
@@ -345,7 +345,7 @@ classdef (HandleCompatible) ImageRegion
 			% assigned based on the order in which RegionPropagation objects are passed in (by index). A second
 			% output can be specified, providing a second label matrix where the labels assigned are the
 			% unique ID number for each respective object passed as input.
-			
+
 			% WILL ALLOCATE IMAGE WITH MOST EFFICIENT DATA-TYPE POSSIBLE
 			N = numel(obj);
 			if N <= intmax('uint8')
@@ -357,21 +357,21 @@ classdef (HandleCompatible) ImageRegion
 			else
 				outClass = 'double';
 			end
-			
+
 			% CONSTRUCT INDICES FOR EFFICIENT LABEL ASSIGMENT
 			pxIdx = cat(1, obj.PixelIdxList);
 			lastIdx = cumsum(round(cat(1, obj.Area)));
 			roiIdxPxLabel = zeros(size(pxIdx), outClass);
 			roiIdxPxLabel(lastIdx(1:end-1)+1) = 1;
 			roiIdxPxLabel = cumsum(roiIdxPxLabel) + 1;
-			
+
 			% ASSIGN LABELS IN THE ORDER OBJECTS WERE PASSED TO THE FUNCTION
 			if nargin < 2
 				imSize = 2^nextpow2(sqrt(double(max(pxIdx(:)))));
 			end
 			labelMatrix = zeros(imSize, outClass);
 			labelMatrix(pxIdx) = roiIdxPxLabel;
-			
+
 			if nargout > 1
 				roiUid = cat(1, obj.UID);
 				roiUidPxLabel = roiUid(roiIdxPxLabel);
@@ -381,11 +381,11 @@ classdef (HandleCompatible) ImageRegion
 			end
 		end
 	end
-	
+
 	% INITIALIZATION & STATIC HELPER METHODS
 	methods (Access = protected, Hidden)
 		function varargout = copyPropsFromStruct(obj, S)
-			
+
 			% COPY VALUES FROM REGION-PROPS STRUCTURE
 			statFields = fields(S);
 				for k=1:numel(statFields)
@@ -397,15 +397,15 @@ classdef (HandleCompatible) ImageRegion
 					end
 					[obj.(statName)] = deal(statVal{:});
 				end
-				
+
 			% RETURN MODIFIED OBJECTS
 			if nargout
 				varargout{1} = obj;
 			end
-			
+
 		end
 		function varargout = parseConstructorInput(obj, varargin)
-			
+
 			if (nargin > 1)
 				% perhaps should also use parseparams
 				if (~isempty(varargin)) && (numel(varargin) >=2)
@@ -430,7 +430,7 @@ classdef (HandleCompatible) ImageRegion
 			end
 		end
 		function varargout = addUid(obj, varargin)
-			
+
 			% ASSIGN UNIQUE-IDENTIFICATION-NUMBER -> IMMUTABLE?
 			global uID
 			if isempty(uID)
@@ -440,7 +440,7 @@ classdef (HandleCompatible) ImageRegion
 				uid = uID;
 			else
 				uid = varargin{1};
-			end			
+			end
 			N = numel(obj);
 			if length(uid) < N
 				uid = uid + (0:(N-1));
@@ -448,7 +448,7 @@ classdef (HandleCompatible) ImageRegion
 			for k=1:N
 				obj(k).UID = uint32(uid(k));
 			end
-			
+
 			% UPDATE GREATEST GLOBAL UID & RETURN OBJECT
 			uID = max( uid(end)+1 , uID+N );
 			if nargout
@@ -458,18 +458,18 @@ classdef (HandleCompatible) ImageRegion
 	end
 	methods (Static)
 		function validStats = regionStats()
-			
+
 			validStats.basic = {
 				'Area'
 				'BoundingBox'
 				'Centroid'};
-			
+
 			validStats.essential = {
 				'Area'
 				'BoundingBox'
 				'Centroid'
 				'PixelIdxList'};
-			
+
 			validStats.shape = {
 				'Area'
 				'BoundingBox'
@@ -486,14 +486,14 @@ classdef (HandleCompatible) ImageRegion
 				'Perimeter'
 				'PixelIdxList'
 				'PixelList'};
-			
+
 			validStats.pixel = {
 				'PixelValues'
 				'WeightedCentroid'
 				'MeanIntensity'
 				'MinIntensity'
 				'MaxIntensity'};
-			
+
 			validStats.faster = {
 				'Area'
 				'BoundingBox'
@@ -511,7 +511,7 @@ classdef (HandleCompatible) ImageRegion
 				'Extent'
 				'PixelIdxList'
 				'PixelList'};
-			
+
 			validStats.all = {
 				'Area'
 				'BoundingBox'
@@ -533,7 +533,7 @@ classdef (HandleCompatible) ImageRegion
 				'Extent'
 				'PixelIdxList'
 				'PixelList'};
-			
+
 			validStats.sizeconsistent = {
 				'Area'
 				'BoundingBox'
@@ -551,7 +551,7 @@ classdef (HandleCompatible) ImageRegion
 				'Extrema'
 				'EquivDiameter'
 				'Extent'};
-			
+
 			validStats.scalar = {
 				'Area'
 				'MeanIntensity'
@@ -564,8 +564,8 @@ classdef (HandleCompatible) ImageRegion
 				'Perimeter'
 				'EquivDiameter'
 				'Extent'};
-			
-			
+
+
 		end
 	end
 

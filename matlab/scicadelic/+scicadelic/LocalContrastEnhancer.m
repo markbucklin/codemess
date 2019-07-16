@@ -1,11 +1,11 @@
 classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.SciCaDelicSystem
 	% LocalContrastEnhancer
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	% USER SETTINGS
 	properties (Nontunable) % new
 		LpFilterSigma = 12 %16 % 25
@@ -15,7 +15,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 		% 		BackgroundFrameSpan = 1 % TODO:remove?
 		MaxNumberTrainingFrames = 32
 	end
-	
+
 	% STATES
 	properties (DiscreteState)
 		CurrentFrameIdx
@@ -24,10 +24,10 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 	properties (SetAccess = protected, Logical)
 		LimLocked
 	end
-	
+
 	% PRIVATE VARIABLES
 	properties (SetAccess = protected, Nontunable, Hidden) % new-nontunable, old-hidden
-		LpFilterFcn@function_handle
+		LpFilterFcn function_handle
 		FloatingPointType = 'single'
 	end
 	properties (SetAccess = protected, Hidden)
@@ -39,14 +39,14 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 		ScaleOut
 		BaselineOut
 	end
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
 	% CONSTRUCTOR
 	methods
 		function obj = LocalContrastEnhancer(varargin)
@@ -55,7 +55,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			obj.Default.FloatingPointType = 'single';
 		end
 	end
-	
+
 	% BASIC INTERNAL SYSTEM METHODS
 	methods (Access = protected)
 		function setupImpl(obj, data)
@@ -67,7 +67,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			constructLocalLowPassFilter(obj)
 			% BASELINE
 			tuneScalarBaseline(obj, data);
-			
+
 			obj.CurrentFrameIdx = 0;
 			obj.TuningImageDataSet = [];
 			if ~isempty(obj.GpuRetrievedProps)
@@ -75,15 +75,15 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			end
 		end
 		function data = stepImpl(obj,data)
-			
+
 			if isempty(obj.CurrentFrameIdx)
 				setup(obj,data)
 			end
-			
+
 			% LOCAL VARIABLES
 			n = obj.CurrentFrameIdx;
 			inputNumFrames = size(data,3);
-			
+
 			if ~obj.LimLocked
 				if obj.CurrentFrameIdx >= obj.MaxNumberTrainingFrames
 					lockLimits(obj)
@@ -92,14 +92,14 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 					constructDomainTransferFunctions(obj)
 				end
 			end
-			
+
 			% RUN HOMOMORPHIC-FILTER FUNCTION
 			data = processData(obj, data);
-			
+
 			% UPDATE NUMBER OF BUFFERED FRAMES
 			% 			obj.CurrentNumBufferedFrames = min(obj.CurrentFrameIdx, obj.BackgroundFrameSpan);%TODO:remove?
 			obj.CurrentFrameIdx = obj.CurrentFrameIdx + inputNumFrames;
-			
+
 		end
 		function resetImpl(obj)
 			% 			preBufferedFrames = obj.CurrentNumBufferedFrames;
@@ -114,8 +114,8 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			% 			end
 			obj.LimLocked = false;
 			constructDomainTransferFunctions(obj)
-			
-			
+
+
 		end
 		function releaseImpl(obj)
 			% 			obj.LimLocked = false;
@@ -163,7 +163,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			loadObjectImpl@matlab.System(obj,s,[]);
 		end
 	end
-	
+
 	% RUN-TIME HELPER FUNCTIONS
 	methods (Access = protected, Hidden)
 		function data = processData(obj, data)
@@ -173,10 +173,10 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			else
 				inputNumFrames = size(data,ndims(data));
 			end
-			
+
 			% CONVERT TO LOG-DOMAIN
 			imGray = toLogFcn(obj,data);
-			
+
 			% GET LOW-FREQUENCY COMPONENT (TO SUBTRACT)
 			% 			if (obj.BackgroundFrameSpan == 1) || (nf <1)
 			try
@@ -185,7 +185,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			catch me
 				getReport(me);
 % 				lpComponent = lpFilt(imGray);
-				
+
 				for k=1:inputNumFrames
 					lpComponent(:,:,k) = imgaussfilt(imGray(:,:,k),7);
 				end
@@ -196,13 +196,13 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			% 				na = 1/(nf + 1);
 			% 				lpComponent = lpComponent*nt + feval(obj.LpFilterFcn, imGray).*na;
 			% 			end
-			
+
 			% SUBTRACT LOW-FREQUENCY COMPONENT IN LOG-DOMAIN
 			imGray = imGray - lpComponent + obj.ScalarLogBaseline;
-			
+
 			% CONVERT BACK TO IMAGE DOMAIN
 			data = fromLogFcn(obj,imGray);
-			
+
 			if inputNumFrames <= 1
 				obj.LpFrameComponent = lpComponent;
 			else
@@ -222,7 +222,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			obj.LimLocked = true;
 		end
 	end
-	
+
 	% TUNING
 	methods (Hidden)
 		function tuneInteractive(obj)
@@ -231,7 +231,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			constructLocalLowPassFilter(obj)
 			tuneScalarBaseline(obj, obj.TuningImageDataSet);
 			lockLimits(obj)
-			
+
 			% STEP 1: LOW-FREQUENCY COMPONENT - GAUSSIAN WINDOW SIGMA
 			k = 1;
 			pname = 'LpFilterSigma';
@@ -244,10 +244,10 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			obj.TuningStep(k).ParameterIdx = ceil(x);
 			obj.TuningStep(k).Function = @testContrastEnhancer;
 			obj.TuningStep(k).CompleteStep = true;
-			
+
 			% SET UP TUNING WINDOW
 			createTuningFigure(obj);			%TODO: can also use for automated tuning?
-			
+
 		end
 		function tuneAutomated(obj)
 			constructDomainTransferFunctions(obj)
@@ -271,19 +271,19 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 				obj.LpFilterSize = [];
 				constructLocalLowPassFilter(obj)
 			end
-			
+
 			% CALL NORMAL "RUN-TIME" HOMOMORPHIC FILTER METHOD
 			F = processData(obj, F);
-			
+
 		end
 	end
-	
+
 	% INITIALIZATION HELPER METHODS
 	methods (Access = protected, Hidden)
 		function constructDomainTransferFunctions(obj)
 			% MANAGE DATATYPES
 			fptype = obj.FloatingPointType;
-			
+
 			% NORMALIZE INPUT TO  0<F<1  RANGE THEN ->  G = LOG(F+1)
 			Si = cast( 1/obj.InputScale, fptype);
 			Bi = cast(obj.InputOffset, fptype);
@@ -293,7 +293,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			end
 			obj.ScaleIn = Si;
 			obj.BaselineIn = Bi;
-			
+
 			% EXPAND RESULT BACK TO RANGE OF OUTPUT AFTER <-  Fh = EXP(G - Gl + io) - 1
 			So = cast( obj.OutputScale, fptype);
 			Bo = cast(obj.OutputOffset, fptype);
@@ -336,7 +336,7 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 						imLowPass = imfilter( imGray, obj.LpCoefficients, 'replicate');
 					end
 					% 					ioNew = mean(imLowPass(imLowPass<median(imLowPass(:))));
-					
+
 					io = max(io, max(imLowPass(:) - imGray(:)));
 				end
 			end
@@ -359,21 +359,21 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			imSize = obj.FrameSize;
 			sigma = obj.LpFilterSigma;
 			hSize = obj.LpFilterSize;
-			
+
 			sigma3 = [sigma sigma 1];
 			hsize3 = [hSize hSize 1];
 			obj.LpFilterFcn = @(f) imgaussfilt3( f, sigma3,...
 				'FilterSize', hsize3,...
 				'Padding', 'replicate',...
 				'FilterDomain', 'spatial');
-			
+
 			% 			obj.LpFilterFcn = @(f) gaussFiltFrameStack(f, sigma);
-			
+
 			% 			[cfcn, H] = constructLowPassFilter(obj, imSize, sigma, hSize);
-			
+
 			% 			obj.LpFilterFcn = cfcn;
 			% 			obj.LpCoefficients = H;
-			
+
 		end
 		function setPrivateProps(obj)
 			oMeta = metaclass(obj);
@@ -423,12 +423,12 @@ classdef (CaseInsensitiveProperties = true) LocalContrastEnhancer < scicadelic.S
 			end
 		end
 	end
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 end
 
 

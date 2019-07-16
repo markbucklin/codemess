@@ -1,8 +1,8 @@
 classdef TaskStack < ignition.core.Object & handle
 	% TaskCache - initialization, update, & storage of a persistent variables used by a Task
-	
-	
-	
+
+
+
 	%Stack @ignition.core.TaskStack
 				% (or) Data @ignition.core.TaskData
 				% (maybe) Data & Stack, where Stack stores the following:
@@ -12,33 +12,33 @@ classdef TaskStack < ignition.core.Object & handle
 				% -> Stack.taskid
 				% -> Stack.performance
 				% -----> (perhaps) should all be defined in (derived) TaskExecutor
-	
-	
-	
+
+
+
 		properties (SetAccess = protected)
-			InitializeFcn @function_handle
-			PreTaskFcn @function_handle
-			PostTaskFcn @function_handle
+			InitializeFcn function_handle
+			PreTaskFcn function_handle
+			PostTaskFcn function_handle
 			% DependentTaskObj
 			% DependentTaskInputIdx
 		end
 		properties (SetAccess = protected, SetObservable)
 			Cache struct
 		end
-		
+
 		% ConstantCache
 		% DynamicCache
 		% TaskVolatileCache
 		% TunableCache
-		
-		
+
+
 		methods
 			function obj = TaskStack(varargin)
 				if nargin
 					parseConstructorInput(obj, varargin{:});
 				end
-					
-			end			
+
+			end
 			function lock(obj)
 			end
 			function release(obj)
@@ -48,16 +48,16 @@ classdef TaskStack < ignition.core.Object & handle
 			function update(obj, cache)
 			end
 		end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
 end
 
 
@@ -71,7 +71,7 @@ end
 % cm = ignition.alpha.CacheManager
 % cs = cm.CacheStore
 % setupForExecution( cm, fields(obj.Cache) ) % ??
-% 
+%
 
 % TWO-LEVEL-CACHE
 % obj = ignition.alpha.TwoLevelCache

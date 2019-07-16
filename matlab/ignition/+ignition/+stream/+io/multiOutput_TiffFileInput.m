@@ -1,9 +1,9 @@
 classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		TiffFileInput < ignition.core.Module & matlab.system.mixin.FiniteSource
 	% TiffFileInput -> ThreadedImageLoader (TODO)
-	
-	
-	
+
+
+
 	% SETTINGS
 	properties (Nontunable)
 		FileName
@@ -21,7 +21,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 	properties
 		MaxFrameRate = 100
 	end
-	
+
 	% OUTPUT SETTINGS
 	properties (Nontunable, Logical)
 		VideoStreamOutputPort = true
@@ -31,12 +31,12 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		FrameIdxOutputPort = false
 	end
 	% todo: VideoStreamOutputPort
-	
+
 	% HIDDEN SETTINGS
 	properties (Constant, PositiveInteger, Hidden)
 		MinSampleNumber = 100
 	end
-	
+
 	% CURRENT STATE (Frame & File Index)
 	properties (SetAccess = ?ignition.core.Object)
 		NextFrameIdx = 0
@@ -46,7 +46,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		IsFinished(1,1) logical = false
 		IsLastFile = false;
 	end
-	
+
 	% OUTPUT
 	properties (SetAccess = ?ignition.core.Object)
 		FrameData
@@ -55,9 +55,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		FrameIdx
 	end
 	% todo: VideoBaseType -> make FrameData, FrameTime, etc Dependent
-	
+
 	% todo: FrameBuffer and/or FrameBufferCollection
-	
+
 	% TIFF-STACK -FILE & -FRAME INFO
 	properties (SetAccess = ?ignition.core.Object, Nontunable)
 		TiffObj(:,1) Tiff
@@ -80,7 +80,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		NumFrames
 		NumFiles
 	end
-	
+
 	% EMULATE IMAQ.VIDEODEVICE
 	properties (SetAccess = ?ignition.core.Object, Nontunable)
 		ReturnedDataType
@@ -89,14 +89,14 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		ReturnedColorSpace
 		VideoFormat
 	end
-	
+
 	% PARALLEL COMPUTING PROPS
 	properties (SetAccess = ?ignition.core.Object, Nontunable, Hidden)
-		ParallelFutureObj @parallel.FevalFuture
+		ParallelFutureObj parallel.FevalFuture
 		NumBufferBlocks
 		PoolTimeoutListener
 	end
-	
+
 	% PRIVATE VARIABLES
 	properties (SetAccess = ?ignition.core.Object, Nontunable, Hidden)
 		FileIdxLUT
@@ -108,7 +108,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		StartFrameIdx = 1
 		CurrentLoadedFrameIdx = 0
 	end
-	
+
 	% FRAME-IDX MAPPING FUNCTION-HANDLES
 	properties (SetAccess = ?ignition.core.Object, Nontunable, Hidden)
 		IsValidIdx
@@ -116,15 +116,15 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 		LookupFileIdx
 		LookupRelIdx
 	end
-	
+
 	% FRAME DISPATCH/LOAD & FETCH FUNCTION-HANDLES
 	properties (SetAccess = ?ignition.core.Object, Nontunable, Hidden)
 		ReadFrameFcn
 		ReadTaskSchedulerObj %@DeferredTask
 	end
-	
-	
-	
+
+
+
 	events
 		Start
 		Load
@@ -135,24 +135,24 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 	end
 	% todo: implement event notifications and auto/timed fill of buffers in FrameData, FrameInfo, etc.
 	% todo: utilize setStatus function in parent class
-	
-	
+
+
 	% ##################################################
 	% CONSTRUCTOR
 	% ##################################################
 	methods
 		function obj = TiffFileInput(varargin)
-			
+
 			% CALL SUPERCLASS CONSTRUCTOR
 			obj = obj@ignition.core.Module(varargin{:});
-			
+
 			% PARSE INPUT
 			% 			parseConstructorInput(obj,varargin{:});
-			
+
 			% GET NAME OF PACKAGE CONTAINING CLASS
 			% 			getCurrentClassPackage
 			% 			obj.SubPackageName = currentClassPkg;
-			
+
 			% QUERY USER FOR FILES (IF NOT PROVIDED WITH INPUT)
 			% 			checkCapabilitiesAndPreferences(obj)
 			% 			checkFileInput(obj)
@@ -163,63 +163,63 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 				end
 			end
 			checkFileInput(obj)
-			
+
 		end
 	end
-	
-	
+
+
 	% ##################################################
 	% INTERNAL SYSTEM METHODS
 	% ##################################################
-	methods (Access = protected)	
+	methods (Access = protected)
 		function resetImpl(obj)
-			
+
 			fprintf('TiffLoader Reset\n')
-			
+
 			% KEEP TRACK OF COMPLETED FRAMES
 			obj.IsFinished = false;
-			
+
 			% INITIALIZE
 			initialize(obj)
-			
+
 			% SET FRAME IDX TO LOAD IN FOLLOWING BUFFER
 			if isempty(obj.NumFramesPerBufferBlock)
 				obj.NumFramesPerBufferBlock = 8;
 			end
-			
+
 			obj.NextFrameIdx = obj.StartFrameIdx;
 			initializeBuffer(obj)
 			obj.StartFrameIdx = 1;
-			
-			
+
+
 			% TODO
 			readyFcn(obj)
-			
+
 		end
 		function releaseImpl(obj)
 			fprintf('TiffLoader Release\n')
 			obj.IsInitialized = false;
-			
+
 			% CLEAR TIFF OBJECT
 			if ~isempty(obj.TiffObj)
 				closeTiffObj(obj);
 			end
-			
+
 			% DELETE BUFFERS (PARALLEL FUTURES OBJECTS) todo
 			bufferFuture = obj.ParallelFutureObj;
 			if ~isempty(bufferFuture)
 				% 				cancel(bufferFuture)
 				delete(bufferFuture)
 			end
-			
+
 			obj.StartFrameIdx = 1;
 			% 			obj.StartFrameIdx = obj.CurrentLoadedFrameIdx(end) + 1;
-			
+
 			% 			if ~isempty(obj.FrameIdx);
 			% 				lastReadFrameIdx = obj.FrameIdx{end};
 			% 				obj.NextFrameIdx = lastReadFrameIdx(end) + 1;
 			% 			end
-			
+
 		end
 		function numOutputs = getNumOutputsImpl(obj)
 			% 			if obj.VideoStreamOutputPort
@@ -240,22 +240,22 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			flag = obj.IsFinished;
 		end
 	end
-	
+
 	% ##################################################
 	% RUN-TIME HELPER FUNCTIONS
 	% ##################################################
 	methods (Access = protected, Hidden)
 		function varargout = fillNextBufferBlock(obj)
-			
+
 			if isempty(obj.ParallelFutureObj) % (obj.NextFrameIdx(1) < 1) ||
 				fprintf('call reset from fillnextbufferblock\n')
 				reset(obj)
 			end
-			
+
 			% 			nextFrameIdx = obj.NextFrameIdx;
 			bufferIdx = obj.NextBufferIdx;
 			% 			numPerBlock = obj.NumFramesPerBufferBlock;
-			
+
 			% LOAD DATA FROM REMOTE PARALLEL FUTURE OBJECT
 			[~, frameData, frameTime, frameInfo] = fetchNext(obj.ParallelFutureObj(bufferIdx));%, .5);
 			if ~isempty(frameInfo)
@@ -264,8 +264,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			else
 				frameIdx = [];
 			end
-			
-			
+
+
 			% CHECK IF FINISHED
 			if isempty(frameData) || (frameIdx(end) >= obj.LastFrameIdx)
 				setStateFinished(obj)
@@ -273,9 +273,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			else
 				obj.IsFinished = false;
 			end
-			
+
 			if nargout < 1
-				
+
 				% FILL MULTI-BLOCK CAPABLE CLIENT SIDE BUFFERS
 				if ~isempty(obj.FrameInfo)
 					obj.FrameData = cat(1, obj.FrameData, {frameData});
@@ -292,7 +292,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 				availableArgs = {frameData, frameTime, frameInfo, frameIdx};
 				varargout = availableArgs(1:nargout);
 			end
-			
+
 			% 			% DISPATCH REMOTE READ FUNCTION
 			% 			if ~isempty(nextFrameIdx)
 			% 				readFrameFcn = obj.ReadFrameFcn;
@@ -313,7 +313,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			bufferIdx = obj.NextBufferIdx; % post-load (TODO) not updated above -> create a variable to signal buffer has been loaded and is ready for dispatch
 			numPerBlock = obj.NumFramesPerBufferBlock;
 			parallelPoolObj = obj.GlobalContextObj.ParallelPoolObj;
-			
+
 			if ~isempty(nextFrameIdx)
 				readFrameFcn = obj.ReadFrameFcn;
 				obj.ParallelFutureObj(bufferIdx) = parfeval( parallelPoolObj, readFrameFcn, 3, obj.StackInfo, nextFrameIdx);
@@ -323,9 +323,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			end
 			obj.NextFrameIdx = nextFrameIdx;
 			obj.NextBufferIdx = mod(bufferIdx, obj.NumBufferBlocks) + 1;
-			
-			
-			
+
+
+
 		end
 		function closeTiffObj(obj)
 			for n = 1:numel(obj.TiffObj)
@@ -335,19 +335,19 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			end
 		end
 		function varargout = makeTiffObj(obj)
-			
+
 			ignition.io.tiff.suppressTiffWarnings()
-			
+
 			for n = 1:numel(obj.FullFilePath)
 				tiffFileName = obj.FullFilePath{n};
 				obj.TiffObj(n) = Tiff(tiffFileName,'r');
 				addlistener(obj.TiffObj(n), 'ObjectBeingDestroyed', @(src,~) close(src));
 			end
-			
+
 			if nargout
 				varargout{1} = obj.TiffObj;
 			end
-			
+
 		end
 		function fileIdx = lookupFileIdx(obj, frameIdx)
 			if ~isempty(obj.LookupFileIdx)
@@ -357,10 +357,10 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			end
 		end
 		function readyFcn(obj)
-			schedule(obj.ReadTaskSchedulerObj); 
+			schedule(obj.ReadTaskSchedulerObj);
 		end
 	end
-	
+
 	methods (Hidden)
 		function setStateFinished(obj)
 			obj.IsFinished = true;
@@ -369,35 +369,35 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			obj.IsInitialized = false;
 		end
 	end
-	
-	
+
+
 	% ##################################################
 	% INITIALIZATION HELPER METHODS
 	% ##################################################
 	methods
 		function initialize(obj)
-			
+
 			if obj.IsInitialized
 				return
 			end
-			
+
 			% START PARALLEL POOL
 			% 			obj.initialize@ignition.core.Object(); % currently empty
-			
-			
+
+
 			% IMPORT LOCAL NAMESPACE FOR EXTERNAL FUNCTIONS
 			% 			import([obj.SubPackageName, '.*']);
 			import ignition.io.tiff.*
-			
+
 			% SELECT/CHECK INPUT SPECIFICATIONS (File Names & Paths)
 			checkFileInput(obj)
-			
+
 			% DEFINE DATA SET NAME
 			if isempty(obj.DataSetName) && ~isempty(obj.FileDirectory)
-				% TODO: move to external function that extracts from any single or stack of files				
-				
+				% TODO: move to external function that extracts from any single or stack of files
+
 				[~,dataLocationName] = fileparts(fileparts(obj.FileDirectory));
-				
+
 				if ischar(obj.FileName)
 					dataSourceFileName = obj.FileName;
 				elseif iscell(obj.FileName)
@@ -409,7 +409,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 						nameLength = min(length(nameA),length(nameB));
 						consistentNameParts = nameA(1:nameLength) == nameB(1:nameLength);
 						inconsistentPart = find(~consistentNameParts);
-						
+
 						% TODO: a bit more complex, this only handles sequential numbering
 						consistentFileName = [ nameA(1:inconsistentPart(end)) ,...
 							' - ' , nameB(inconsistentPart) ,...
@@ -417,36 +417,36 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 						% 						consistentFileName = [ nameA(1:(inconsistentPart(1)-1)) ,...
 						% 														' - ' , nameB(inconsistentPart) ,...
 						% 														nameB((inconsistentPart(end)+1):end) ];
-				
+
 						dataSourceFileName = consistentFileName;
-						
-					end				
+
+					end
 				end
 				obj.DataSetName = ['[',dataLocationName,'] ', dataSourceFileName];
-				
+
 			end
-			
+
 			% 			obj.DataSetName = ['[',dataLocationName,'] ', dataSourceFileName];
-			
+
 			fprintf('[TiffFileInput] DataSetName: %s\n',obj.DataSetName)
 			% 			fullFilePath = obj.FullFilePath(:);
-			
-			
-			
+
+
+
 			% DEFINE TAG PARSING FUNCTION (CUSTOM DEPENDING ON SOURCE)
 			parseFrameInfoFcnHandle = str2func(obj.ParseFrameInfoFcnName);
-			
+
 			% CONSTRUCT LINKS TO TIFF FILES (MOVED FROM BELOW)
 			allTiffObj = makeTiffObj(obj);
-			
+
 			% READ INITIAL TIFF-FILE INFO (FROM FIRST DIRECTORY)
 			[stackInfo, fileInfo, ~] = initializeTiffStack(allTiffObj, parseFrameInfoFcnHandle);
-			
+
 			% COPY STRUCTURED OUTPUT TO PROPERTIES
 			obj.StackInfo = stackInfo;
 			obj.FileInfo = fileInfo;
 			fillPropsFromStruct(obj, stackInfo);
-			
+
 			% SET DEFAULT FIRST & LAST FRAME IDX
 			% 			if isempty(obj.FirstFrameIdx) || (obj.FirstFrameIdx > obj.NumFrames)
 			obj.FirstFrameIdx = 1;
@@ -455,11 +455,11 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			obj.LastFrameIdx = obj.NumFrames;
 			% 			end
 			obj.FrameIdxList = (obj.FirstFrameIdx:obj.LastFrameIdx)';
-			
+
 			% DEFINE READING FUNCTION
 			obj.ReadFrameFcn = @readFrameFromTiffStack;
-			
-			
+
+
 			% 			% START PARALLEL POOL
 			% 			obj.initialize@ignition.System()
 			% 			makeEnvironmentConnections(obj)
@@ -467,37 +467,37 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			% 				obj.PoolTimeoutListener = addlistener(obj.ParallelPoolObj, 'ObjectBeingDestroyed', @(varargin) makeEnvironmentConnections(obj));
 			% 				% todo: need to delete listener?
 			% 			end
-			
-			
+
+
 			% CHUNK/BUFFER OUTPUT
 			% 			numFramesPerBufferBlock = obj.NumFramesPerBufferBlock;
 			parallelPoolObj = obj.GlobalContextObj.ParallelPoolObj;
 			if isempty(obj.NumBufferBlocks)
 				obj.NumBufferBlocks = ceil(parallelPoolObj.NumWorkers/2);
 			end
-			
+
 			% SET UNREAD & BUFFERED IDX LUTS
 			obj.BufferedFrameIdx = cell(obj.NumBufferBlocks,1);
 			obj.IsUnreadFrameIdx = true( size(obj.FrameIdxList));
-			
+
 			obj.IsInitialized = true;
-			
+
 			initializeBuffer(obj)%new
-			
+
 			% CREATE DELAYED TASK SCHEDULER
-			loadFcn = @obj.dispatchRemoteLoad;			
+			loadFcn = @obj.dispatchRemoteLoad;
 			obj.ReadTaskSchedulerObj = ignition.internal.DeferredTask( loadFcn, 0); % obj.ReadTaskSchedulerObj = ignition.internal.DeferredTask();
 			% 			schedule(obj.ReadTaskSchedulerObj, loadFcn, 0); % schedule(obj.ReadTaskSchedulerObj);
-			
+
 			% 			initializeBuffer(obj)%new
-			
+
 		end
 		function varargout = run(obj)
 			% StepImpl(obj) - Loads next available segment of video and dispatches another load operation
 			try
 				% 				notify(obj, 'Processing')
 				% 				startTic = tic;
-			
+
 			% CHECK THAT PARALLEL POOL HASN'T SHUT DOWN AFTER TIMEOUT
 			if (obj.UseParallel) && (~obj.GlobalContextObj.ParallelPoolObj.Connected)
 				fprintf('TiffFileInput: pool disconnect (todo)\n')
@@ -508,20 +508,20 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 				release(obj)
 				obj.StartFrameIdx = nextFirstIdx + 1;
 				reset(obj)
-				
+
 			end
-						
-			
-			% RETRIEVE DATA FROM PARALLEL PROCESS			
+
+
+			% RETRIEVE DATA FROM PARALLEL PROCESS
 			[frameData, frameTime, frameInfo, frameIdx] = fillNextBufferBlock(obj);
-			
-			
+
+
 			% STORE IN VIDEO-SEGMENT TYPE CLASS (CUSTOM)
 			streamOut = ignition.core.type.VideoData(frameData, frameTime, frameInfo, frameIdx);
-			
+
 			% TODO: ADD VIDEO SEGMENT TO BUFFER... to combine?
 			% bufferVideoStream(obj, vidSegment);
-			
+
 			if nargout
 				% 				if obj.VideoStreamOutputPort
 				% 					varargout = {vidSegment};
@@ -539,24 +539,24 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 				varargout = availableOutput(requestedOutput);
 				% 				end
 			end
-			
-			% SCHEDULE NEXT LOAD (DELAYED DISPATCH) 
+
+			% SCHEDULE NEXT LOAD (DELAYED DISPATCH)
 			reschedule(obj.ReadTaskSchedulerObj)
 			% 			loadFcn = @obj.dispatchRemoteLoad;
 			% 			ignition.internal.DeferredTask( loadFcn, 0);
-			
-					
+
+
 			% POST-PROCEDURE TASKS
 			% 			procTime = toc(startTic);
 			% 			addBenchmark(obj.PerformanceMonitorObj, procTime, getNumFrames(vidSegment));
 			%
 			%
 			% 				notify(obj, 'Finished')
-				
+
 			catch me
 				handleError(obj, me)
 			end
-			
+
 		end
 	end
 	methods (Hidden)
@@ -566,7 +566,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			% is implemented as an array of parallel.Future objects, which are replaced with new Future
 			% objects in a circular fashion as each buffer is read out. This function is called during a
 			% call to obj.reset(), and also called after a call to the function obj.setFrameIdx().
-			
+
 			% CANCEL & DELETE ANY CURRENTLY HELD BUFFER FUTURE OBJECTS
 			bufferFuture = obj.ParallelFutureObj;
 			if ~isempty(bufferFuture)
@@ -575,8 +575,8 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			else
 				bufferFuture = parallel.FevalFuture.empty;
 			end
-			
-			
+
+
 			% GET LOCAL VARIABLES FROM PROPS
 			numBlocks = obj.NumBufferBlocks;
 			numPerBlock = obj.NumFramesPerBufferBlock;
@@ -585,15 +585,15 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			parallelPoolObj = obj.GlobalContextObj.ParallelPoolObj;
 			readFrameFcn = obj.ReadFrameFcn;
 			nextFrameIdx = obj.NextFrameIdx;
-			
+
 			% INITIALIZE NEXT-FRAME-IDX
 			nextFrameIdx = max( 1, nextFrameIdx);
 			if (numel(nextFrameIdx) ~= numPerBlock)
-				
+
 				nextFrameIdx = nextFrameIdx(end) + (0:(numPerBlock-1));
 			end
 			% TODO: add repository of frame indices to read
-			
+
 			% DISPATCH LOAD ON EACH PARALLEL WORKER
 			for kBuf = 1:numBlocks
 				bufferIdx = mod(bufferIdx,numBlocks) + 1;
@@ -601,21 +601,21 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 				bufferFuture(bufferIdx) = parfeval( parallelPoolObj, readFrameFcn, 3, stackInfo, nextFrameIdx);
 				obj.BufferedFrameIdx{kBuf,1} = nextFrameIdx;
 				nextFrameIdx = nextFrameIdx(end)+(1:numPerBlock);
-				
+
 			end
-			
+
 			% REASSIGN VARIABLES TO PROPERTIES
 			obj.NextBufferIdx = 1;
 			obj.NextFrameIdx = nextFrameIdx;
 			obj.ParallelFutureObj = bufferFuture;
-			
+
 			% TODO: timed buffering from futures to client
 			% = repmat({[ ]}, 1, numBlocks)
 			obj.FrameData = {};
 			obj.FrameInfo = {};
 			obj.FrameTime = {};
 			obj.FrameIdx = {};
-			
+
 		end
 		function getFileInputInteractive(obj)
 			[fname,fdir] = uigetfile('*.tif','MultiSelect','on');
@@ -665,7 +665,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 	end
 	methods
 		function [data, varargout] = getDataSample(obj, numSampleFrames)
-			
+
 			if isLocked(obj)
 				% ------------------------------------------
 				% RETURN CURRENTLY BUFFERED DATA (IF LOCKED)
@@ -686,38 +686,38 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			if ~obj.IsInitialized
 				initialize(obj)
 			end
-			
+
 			% LOCAL VARIABLES
 			N = obj.NumFrames;
-			
+
 			% DETERMINE NUMBER OF FRAMES TO SAMPLE
 			if nargin < 2
 				numSampleFrames = min(N, obj.MinSampleNumber);
 			end
-			
+
 			if isscalar(numSampleFrames)
 				% GENERATE RANDOMLY SPACED FRAME INDICES TO SAMPLE
 				jitter = floor(N/numSampleFrames);
 				sampleFrameIdx = round(linspace(1, N-jitter, numSampleFrames)')...
 					+ round( jitter*rand(numSampleFrames,1));
-				
+
 			else
 				% USE SPECIFIC FRAME INDICES FROM VECTOR INPUT
 				sampleFrameIdx = numSampleFrames;
 				numSampleFrames = numel(sampleFrameIdx);
-				
+
 			end
-			
+
 			% LOAD FRAMES
-			
-			
+
+
 			% GET FRAME-IDX MAPPING FUNCTION HANDLES
 			% 			lookupFileIdx = obj.LookupFileIdx;
 			% 			lookupRelIdx = obj.LookupRelIdx;
-			
+
 			% TODO: LOAD WITH ASYNC FUNCTION
 			data(:,:,:,numSampleFrames) = zeros(obj.FrameSize, obj.InputDataType);
-			
+
 			% 			nextIdx = obj.CurrentFrameIdx;
 			% 			for k=1:numSampleFrames
 			% 				% 				setFrameIdx(obj, sampleFrameIdx(k));
@@ -726,23 +726,23 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			% 				setDirectory(obj.TiffObj(fileIdx), relativeFrameIdx) % Unnecessary???
 			% 				data(:,:,:,k) = read(obj.TiffObj(fileIdx));
 			% 			end
-			
-			
+
+
 			% 			if ~isempty(currentIdx)
 			% 				setFrameIdx(obj, currentIdx);
 			% 			end
-			
+
 			% RETURN FRAME IDX IF 2ND OUTPUT REQUESTED
 			if nargout > 1
 				varargout{1} = sampleFrameIdx;
 			end
-			
+
 		end
 		function setFrameIdx(obj, frameIdx)
 			% Sets the NextFrameIdx property to 'frameIdx', specifying the next frame(s) to read
-			
+
 			obj.StartFrameIdx = frameIdx(1);
-			
+
 			if isLocked(obj)
 				% DELETE BUFFERS (PARALLEL FUTURES OBJECTS) todo
 				bufferFuture = obj.ParallelFutureObj;
@@ -755,21 +755,21 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 				initializeBuffer(obj)
 				obj.StartFrameIdx = 1;
 				% 				obj.StartFrameIdx = obj.CurrentLoadedFrameIdx(end) + 1;
-				
+
 				% 				release(obj)
 			end
 			% 			reset(obj);
-			
+
 			% 			obj.NextFrameIdx = frameIdx;
-			
+
 			% 			if (obj.NextFrameIdx(1) >= obj.NumFrames)
 			% 				setStateFinished(obj)
 			% 			end
-			
+
 		end
 	end
 	methods
-		function delete(obj)			
+		function delete(obj)
 			if ~isempty(obj.ReadTaskSchedulerObj)
 				try
 					delete(obj.ReadTaskSchedulerObj);
@@ -779,9 +779,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			end
 		end
 	end
-	
-	
-	
+
+
+
 	% ##################################################
 	% PROPERTY-SET METHODS
 	% ##################################################
@@ -817,21 +817,21 @@ classdef (CaseInsensitiveProperties, TruncatedProperties)  ...
 			setStatePreInitialized(obj)
 		end
 	end
-	
-	
-	
+
+
+
 end
 
 
 
 
 % function suppressTiffWarnings()
-% 
+%
 % % SUPPRESS TIFFLIB WARNINGS
 % warning('off','MATLAB:imagesci:tiffmexutils:libtiffWarning')
 % warning('off','MATLAB:tifflib:TIFFReadDirectory:libraryWarning')
 % warning('off','MATLAB:imagesci:Tiff:closingFileHandle')
-% 
+%
 % end
 
 

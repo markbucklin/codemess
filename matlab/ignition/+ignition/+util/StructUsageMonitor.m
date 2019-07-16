@@ -1,20 +1,20 @@
 classdef StructUsageMonitor < handle & dynamicprops
-	% todo 
-	
+	% todo
+
 	properties (SetAccess = protected, Hidden)
 		StructInternal struct
 		FieldWriteCount = []
 		FieldReadCount = []
-		FieldWriteFlag @logical
-		FieldReadFlag @logical
-		FieldNameList @cell
+		FieldWriteFlag logical
+		FieldReadFlag logical
+		FieldNameList cell
 		FieldRecordIdx struct
-		PropReadListener @event.proplistener
-		PropWriteListener @event.proplistener
+		PropReadListener event.proplistener
+		PropWriteListener event.proplistener
 	end
-	
-	
-	
+
+
+
 	methods
 		function obj = StructUsageMonitor( structInput)
 			if nargin
@@ -31,7 +31,7 @@ classdef StructUsageMonitor < handle & dynamicprops
 			end
 		end
 		function wrapStruct(obj, s)
-			
+
 			% EXAMINE STRUCT
 			assert(isstruct(s), 'Ignition:Util:StractAccessRecorder:NonStructInput');
 			assert(isscalar(s), 'Ignition:Util:StractAccessRecorder:NonScalarInput');
@@ -39,7 +39,7 @@ classdef StructUsageMonitor < handle & dynamicprops
 			vals = struct2cell(s);
 			numFields = numel(vals);
 			cellIdx = num2cell(1:numFields)';
-			
+
 			% INITIALIZE RECORD
 			obj.FieldNameList = fields;
 			obj.FieldRecordIdx = cell2struct( cellIdx,fields,1);
@@ -47,31 +47,31 @@ classdef StructUsageMonitor < handle & dynamicprops
 			obj.FieldWriteCount = zeros(numFields,1);
 			obj.FieldReadFlag = false(numFields,1);
 			obj.FieldWriteFlag = false(numFields,1);
-			
+
 			% ADD PROPERTIES TO REFLECT STRUCTURE
 			for k=1:numFields
 				prop(k) = addprop(obj, fields{k});
 				obj.(fields{k}) = vals{k};
-				
+
 				% MONITOR READS
-				prop(k).GetObservable = true;				
-												
+				prop(k).GetObservable = true;
+
 				% MONITOR WRITES
 				prop(k).SetObservable = true;
 				% 				prop(k).AbortSet = true;
-								
+
 			end
-			
+
 			% CONSTRUCT LISTENERS WITH CALLBACK FOR ACCESS EVENT
 			obj.PropReadListener = addlistener(obj, prop, 'PostGet', @recordPropAccess);
 			obj.PropWriteListener = addlistener(obj, prop, 'PostSet', @recordPropAccess);
 			% CONSTRUCT LISTENERS WITH CALLBACK FOR ACCESS EVENT
 			% 			obj.PropReadListener = addlistener(obj, prop, 'PostGet', @(src,evnt)recordPropAccess(obj,src,evnt));
 			% 			obj.PropWriteListener = addlistener(obj, prop, 'PostSet', @(src,evnt)recordPropAccess(obj,src,evnt));
-			
+
 			% CALLBACK
 			function recordPropAccess(src,evnt)
-				% src is the same meta.property object defined using 'prop' above				
+				% src is the same meta.property object defined using 'prop' above
 				propName = src.Name;
 				switch evnt.EventName
 					case 'PreGet'
@@ -83,7 +83,7 @@ classdef StructUsageMonitor < handle & dynamicprops
 					case 'PostSet'
 						recordWriteAccess(obj, propName)
 				end
-			end			
+			end
 		end
 		function recordReadAccess(obj, fieldName)
 			idx = obj.FieldRecordIdx.(fieldName);
@@ -113,20 +113,20 @@ classdef StructUsageMonitor < handle & dynamicprops
 			end
 		end
 	end
-	
+
 	% IMPOSTER FUNCTIONS
-	methods 
+	methods
 		function flag = isstruct(~)
-			flag = true;			
+			flag = true;
 		end
 		function names = fields(obj)
 			names = properties(obj);
 		end
 		function names = fieldnames(obj)
 			names = properties(obj);
-		end		
+		end
 	end
-	
+
 end
 
 

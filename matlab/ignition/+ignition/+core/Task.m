@@ -4,19 +4,19 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		& ignition.core.UniquelyIdentifiable
 	%Task Reference to properties of current computational environment
 	%   TODO:Details
-	
+
 % stk = parallel.internal.datastructs.Stack
 
 
 	% TASK I/O
 	properties (SetAccess = protected)%immutable)
-		Input @ignition.core.TaskInput
-		Output @ignition.core.TaskOutput
+		Input ignition.core.TaskInput
+		Output ignition.core.TaskOutput
 	end
-	
+
 	% todo -> implement xferSuccessFlags for outputs (and input?) and sync links after all outputs assigned
-	
-	
+
+
 	methods
 		% CONSTRUCTOR
 		function obj = Task(fcn, varargin)
@@ -24,19 +24,19 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			% Usage:
 			%			>> obj = ignition.core.Task( operationHandle );
 			%
-			
+
 			% CALL SUPERCLASS CONSTRUCTOR
 			obj = obj@ignition.core.Operation(fcn);
-			
+
 			% PARSE ADDITIONAL INPUTS
 			if (nargin > 1)
 				parseConstructorInput(obj, varargin{:});
 			end
-			
+
 			% CONSTRUCT TASK INPUT/OUTPUT OBJECTS
 			initializeTaskInput(obj)
 			initializeTaskOutput(obj)
-			
+
 		end
 		function initializeTaskInput(obj)
 			k = numel(obj.Input);
@@ -53,7 +53,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			end
 		end
 		function execute(obj)
-			
+
 			for k = 1:numel(obj)
 				task = obj(k);
 				try
@@ -65,43 +65,43 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 					msg = getReport(me);
 					fprintf('execution failed\n')
 					disp(msg)
-					
+
 				end
 			end
 		end
-		
+
 		% SPECIFY REQUIRED (UPSTREAM) SOURCES TO RECEIVE INPUT FROM
 		function receiveInputFrom(obj, srcObj, whatIsRequired, inputIdx)
-			
-			
+
+
 			% DEFAULT REQUIREMENT SOURCE IS FIRST OUTPUT ARGUMENT (IDX=1)
 			if (nargin < 3) || isempty(whatIsRequired)
 				whatIsRequired = 1;
 			end
-			
+
 			if nargin < 4
 				inputIdx = 1:numel(whatIsRequired);
 			end
-			
+
 			% CALL MORE SPECIFIC METHOD BASED ON WHAT OUTPUT IS REQUIRED
 			if isnumeric(whatIsRequired)
 				receiveInputFromTaskOutput(obj, srcObj, whatIsRequired, inputIdx)
-				
+
 			else
 				receiveInputFromProp(obj, srcObj, whatIsRequired, inputIdx)
 			end
-			
-			
+
+
 			% todo -> make generic for receiving properties from src
-			
-			
+
+
 		end
 		function receiveInputFromTaskOutput(obj, srcTaskObj, outputIdx, inputIdx)
 			% dependentTask - task object consuming input from requiredTask
 			% requiredTask - task producing output for dependentTask
 			% outputIdx - the output argument idx(s) of the function run by requiredTask
 			% inputIdx - the input argument idx(s) of the function run by requiredTask
-			
+
 			% IF INPUT/OUTPUT ARGUMENT INDICES NOT SPECIFIED -> DEFAULT TO 1
 			if nargin < 4
 				if nargin < 3
@@ -112,30 +112,30 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			assert( isnumeric(inputIdx) );
 			assert( isnumeric(outputIdx) );
 			assert( numel(outputIdx) == numel(inputIdx) ); % todo: message
-			
+
 			% UPDATE NUM-INPUT-ARGS FOR RECEIVING-TASK-OBJECT
 			if obj.NumInputArguments < max(inputIdx(:))
 				obj.NumInputArguments = max(inputIdx(:));
 				initializeTaskInput(obj);
 			end
-			
+
 			% UPDATE NUM-OUTPUT-ARGS FOR SENDING-TASK-OBJECT
 			if srcTaskObj.NumOutputArguments < max(outputIdx(:))
 				srcTaskObj.NumOutputArguments = max(outputIdx(:));
 				initializeTaskOutput(srcTaskObj);
 			end
-			
+
 			% LINK
 			for k = 1:numel(outputIdx)
 				link( srcTaskObj.Output(outputIdx(k)), obj.Input(inputIdx(k)) );
 			end
-			
+
 		end
 		function receiveInputFromProp(obj, srcObj, srcPropName, inputIdx)
 			%function bindDependentPropertySource(obj, srcTaskObj, srcProp, inputDest)%
 			% rename StateVar?
 			% obj = dependentTaskObj
-			
+
 			% IF INPUT/OUTPUT ARGUMENT INDICES NOT SPECIFIED -> DEFAULT TO SAME STATE
 			if nargin < 3
 				srcPropName = {'Data'}; % todo -> build exposed props
@@ -151,13 +151,13 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			assert( iscellstr(srcPropName) );
 			assert( isnumeric(inputIdx) );
 			assert( (numProp == numIdx) || (numIdx == 1) ); % todo: message
-			
+
 			% UPDATE NUM-INPUT-ARGS FOR RECEIVING-TASK-OBJECT
 			if obj.NumInputArguments < max(inputIdx(:))
 				obj.NumInputArguments = max(inputIdx(:));
 				initializeTaskInput(obj);
 			end
-			
+
 			% LINK
 			if (numProp == numIdx)
 				for k = 1:numProp
@@ -167,58 +167,58 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 					idx = inputIdx(k);
 					link( obj.Input(idx), propSource);
 				end
-				
+
 			else
 				% todo
 				srcData = ignition.core.TaskData( srcObj, srcPropName, getStructFromProps(srcObj,srcPropName));
 				link( obj.Input, srcData);
 			end
-			
-			
-			
+
+
+
 		end
-		
+
 		% SPECIFY DEPENDENT (DOWNSTREAM) TASKS
 		function sendOutputTo(obj, targetTaskObj, targetDest, outputIdx)
-			
+
 		end
 		function sendOutputToTaskInput(obj, outputIdx, targetTaskObj, inputIdx)
-			
+
 		end
 		function sendPropTo(obj, targetTaskObj, targetDest, propName)
-			
+
 		end
 		% --> .NET Observable --> subscribe()		----> "PUSH"-Based Design
-		
+
 		function [execFcn, taskGraph] = getExecutionChain(obj, mode)
-			
+
 			if nargin < 2
 				mode = 'upstream';
 			end
-			
+
 			if strcmpi(mode(1:2), 'up')
-				
+
 			else
-				
+
 			end
-			
+
 			%for kTask=1:numel(obj)
 			task = obj;
-			while true				
+			while true
 				fcn = task.Function;
 				in = task.Input;
-				out = task.Output;				
+				out = task.Output;
 				src = [in.Source];
 				% todo
 				for kReq = 1:numel(allInputDep)
 					dep = allInputDep(kReq);
 					reqObj = dep.RequiredTaskObj;
 					depIdx = dep.DependentInputIdx;
-					reqIdx = dep.RequiredOutputIdx;					
-				end				
-			end			
+					reqIdx = dep.RequiredOutputIdx;
+				end
+			end
 				% argsIn = {task.Input.Data};
-				% argsOut = cell(1,numel(task.Output));			
+				% argsOut = cell(1,numel(task.Output));
 		end
 		function src = getInputSource(obj)
 			taskIn = [obj.Input];
@@ -232,88 +232,88 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				idx = k;
 				task{k} = cellfun(@getIdxOrLastTask, src, 'UniformOutput',false);
 			end
-			
+
 			function t = getIdxOrLastTask(allSrc)
 				nextSrc = allSrc(min(idx,numel(allSrc)));
 				t = nextSrc.TaskObj;
 			end
 		end
-		
+
 	end
 	methods (Sealed)
 		function taskList = getUpstreamTaskList(obj)
-			
+
 			% BEGIN LIST WITH OBJECT
 			%[taskID, uIdx, ~] = unique([obj.ID]);
 			%taskID = taskID(:)';
 			%taskList = obj(uIdx)';
 			%chk = numel(taskList);
-			
+
 			taskList = obj(:)';
 			taskID = [taskList.ID];
 			curtask = taskList;
-			
+
 			% LOOP WHILE UNTIL NO NEW TASKS ARE FOUND
 			while true
 				% GET SOURCES (TASK OUTPUT) FOR TASK INPUT
 				io = [curtask.Input]; if isempty(io), break, end
 				src = [io.Source]; if isempty(src), break, end
-				
+
 				% GET TASK OBJECT THAT GENERATES UPSTREAM SOURCES
 				uptask = [src.TaskObj];
 				id = [uptask.ID];
 				[id, tskidx, ~] = unique(id);
-				
+
 				% CHECK IF THIS ROUND OF UPSTREAM TASKS MATCH TASKS ALREADY FOUND
 				idnew = ~any(bsxfun(@eq, id(:), taskID ), 2);
 				if ~any(idnew)
 					break
 				end
-				
+
 				% PREPEND NEW IDs AND TASKS TO LIST
 				taskID = [ id(idnew) , taskID];
 				curtask = uptask(tskidx(idnew));
 				taskList = [ curtask(:)' , taskList(:)'];
-				
+
 			end
 			disp(taskList)
 			%disp(strvcat({taskList.FunctionString})) % todo
-			
+
 		end
 		function taskList = getDownstreamTaskList(obj)
-			
+
 			taskList = obj(:)';
 			taskID = [taskList.ID];
 			curtask = taskList;
-			
+
 			% LOOP WHILE UNTIL NO NEW TASKS ARE FOUND
 			while true
 				% GET SOURCES (TASK OUTPUT) FOR TASK INPUT
 				io = [curtask.Output]; if isempty(io), break, end
 				targ = [io.Target]; if isempty(targ), break, end
-				
-				
+
+
 				% GET TASK OBJECT THAT GENERATES UPSTREAM SOURCES
 				downtask = [targ.TaskObj];
 				id = [downtask.ID];
 				[id, tskidx, ~] = unique(id);
-				
+
 				% CHECK IF THIS ROUND OF UPSTREAM TASKS MATCH TASKS ALREADY FOUND
 				idnew = ~any(bsxfun(@eq, id(:), taskID ), 2);
 				if ~any(idnew)
 					break
 				end
-				
+
 				% PREPEND NEW IDs AND TASKS TO LIST
 				taskID = [ id(idnew) , taskID];
 				curtask = downtask(tskidx(idnew));
 				taskList = [ curtask(:)' , taskList(:)'];
-				
+
 			end
 			disp(taskList)
 			%disp(strvcat({taskList.FunctionString})) % todo
-			
-		end		
+
+		end
 	end
 	methods (Access = protected, Sealed)
 		function displayNonScalarObject(objAry)
@@ -337,7 +337,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 						funcString = o.FunctionString;
 						numOut = o.NumOutputArguments;
 						numIn = o.NumInputArguments;
-						
+
 						propList = struct(...
 							'Name', tskName,...
 							'Function', funcString,...
@@ -354,18 +354,18 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				end
 			end
 		end
-		
-		
-		
-		
+
+
+
+
 	end
 	methods (Hidden)
-		
+
 	end
 	methods (Static, Hidden)
-		
+
 	end
-	
+
 end
 
 

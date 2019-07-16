@@ -1,10 +1,10 @@
 classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 	%StreamTask Reference to properties of current computational environment
 	%   TODO:Details
-	
-	
-	
-	
+
+
+
+
 	% SETTINGS
 	properties
 		Priority %todo
@@ -15,49 +15,49 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 	properties
 		Enabled(1,1) logical = true % todo
 	end
-	
+
 	% FUNCTION HANDLES
 	properties (SetAccess = protected)
-		ConfigurationFcn @function_handle
-		InitializationFcn @function_handle
-		MainTaskFcn @function_handle
+		ConfigurationFcn function_handle
+		InitializationFcn function_handle
+		MainTaskFcn function_handle
 	end
-	
+
 	% INPUT/OUTPUT
 	properties (SetAccess = protected)
 		Configuration struct
 		State
 		NumInputChannels = 0
 		NumOutputChannels = 0
-		TaskInput @cell
-		TaskOutput @cell
-		StreamInputBuffer @ignition.core.Buffer
-		StreamOutputBuffer @ignition.core.Buffer
+		TaskInput cell
+		TaskOutput cell
+		StreamInputBuffer ignition.core.Buffer
+		StreamOutputBuffer ignition.core.Buffer
 		ErrorOutput
 		IsFinished = false
 	end
-	
-	
-	
+
+
+
 	events
 		Finished
 	end
-	
-	
-	
-	
+
+
+
+
 	methods
 		function obj = StreamTask( taskFcnHandle, numArgsOut, varargin)
-			
+
 			% ASSIGN INPUT ARGUMENTS TO PROPERTIES (IF PROVIDED)
 			if (nargin > 0)
-				obj.MainTaskFcn = taskFcnHandle;				
+				obj.MainTaskFcn = taskFcnHandle;
 				if (nargin > 1)
 					obj.NumOutputChannels = numArgsOut;
-				end				
+				end
 			end
-			
-			
+
+
 		end
 		function configure(obj, taskFcnHandle, numArgsOut, varargin)
 			%		>> schedule(obj, taskFcnHandle, numArgsOut, varargin{:})
@@ -67,18 +67,18 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 			else
 				taskInput = varargin;
 			end
-			if (nargin < 3) 
+			if (nargin < 3)
 				numArgsOut = obj.NumOutputChannels;
 				if (nargin < 2)
 					taskFcnHandle = obj.MainTaskFcn;
 				end
 			end
-			
+
 			obj.TaskInput = taskInput;
 			obj.NumOutputChannels = numArgsOut;
 			obj.MainTaskFcn = taskFcnHandle;
-			
-				
+
+
 		end
 		function reschedule(obj, varargin)
 			% >> reschedule(obj, newInput)
@@ -88,7 +88,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 			else
 				schedule(obj, obj.MainTaskFcn, obj.NumOutputChannels);
 			end
-				
+
 		end
 		function delete(obj)
 			try
@@ -110,11 +110,11 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) StreamTask < handle
 			assignin('base','evnt',evnt);
 		end
 	end
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 end
 

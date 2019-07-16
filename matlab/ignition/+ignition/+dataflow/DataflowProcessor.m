@@ -1,86 +1,86 @@
 classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		DataflowProcessor < ignition.core.Task
 % 		DataflowProcessor < ignition.core.Object & handle & matlab.mixin.CustomDisplay
-	
-	
-	
-	
-	
+
+
+
+
+
 	% CONFIGURATION
 	properties
 	end
-		
+
 	% CONTROL
 	properties
 	end
-	
+
 	% STATE
 	properties
 	end
-	
+
 	% COMMON CONTROL
 	properties
 		Priority = 0
 		Enabled = false
-		NextExecutionDeadline @double %todo -> use class that supports scheduling + type(hard/soft)
-		DispatchType @ignition.core.FunctionDispatchType
+		NextExecutionDeadline double %todo -> use class that supports scheduling + type(hard/soft)
+		DispatchType ignition.core.FunctionDispatchType
 	end
-	
+
 	% IO
 	properties (SetAccess = protected)
 		InputStream
 		OutputStream
 	end
-	
+
 	properties (SetAccess = protected) % Hidden
-		ConfigureTask @ignition.core.Task
+		ConfigureTask ignition.core.Task
 		IsConfigured = false
-		InitializeTask @ignition.core.Task
+		InitializeTask ignition.core.Task
 		IsInitialized = false
 	end
 	properties (SetAccess = protected) % Hidden
-		TaskList @ignition.core.Task
-		LinkList @ignition.core.tasks.TaskLink
+		TaskList ignition.core.Task
+		LinkList ignition.core.tasks.TaskLink
 		TaskData struct
 		TaskConfiguration struct
 		ConfigurationInterface
 		ControlInterface
 		StateInterface
 	end
-	
-	% todo -> 
+
+	% todo ->
 	%		PerformanceMonitorObj
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
 	methods
 		function obj = DataflowProcessor( varargin )
-			
-			% CALL TASK CONSTRUCTOR						
-			%fcn = @(f)write(streamOut, f);			
+
+			% CALL TASK CONSTRUCTOR
+			%fcn = @(f)write(streamOut, f);
 			%fcn = @()execute(obj);
 			fcn = @noop; % @ignition.shared.nullFcn;
 			argsIn = [{fcn} , varargin];
 			obj = obj@ignition.core.Task(argsIn{:});
-			
+
 			% IO STREAMS
-			streamOut = ignition.core.FrameBuffer;			
-			obj.OutputStream = streamOut;			
-			
+			streamOut = ignition.core.FrameBuffer;
+			obj.OutputStream = streamOut;
+
 			% INITIALIZE WITH DEFAULT CONFIGURATION
 			if isempty(obj.TaskConfiguration)
 				obj.TaskConfiguration = getStructFromPropGroup(obj, 'configuration');
 			end
-			
+
 			import ignition.core.TaskInterface
 			obj.ConfigurationInterface = TaskInterface.buildFromObjectPropertyGroup(obj,'configuration');
 			obj.ControlInterface = TaskInterface.buildFromObjectPropertyGroup(obj,'control');
 			obj.StateInterface = TaskInterface.buildFromObjectPropertyGroup(obj,'state');
-			
+
 		end
 		function attachInputStream(obj, streamIn)
 			%streamIn = ignition.core.FrameBuffer;
@@ -92,12 +92,12 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			end
 		end
 	end
-	
+
 	methods
 		function configure(obj)
 			% Runs a 'ConfigureTask' adhering to the format:
 			%			>> config = myconfigfcn( val1, val2, ...)
-			
+
 			% 			% INITIALIZE TO EMPTY STRUCTURE
 			% 			config = struct.empty();
 			%
@@ -124,13 +124,13 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				end
 			end
 			obj.IsConfigured = true;
-			
+
 		end
 		function initialize(obj)
 			% Runs an 'InitializeTask' adhering to the format:
 			%			>> taskData = myinitfcn( config, in1, in2, ...)
 			% where config is also updated and copied into the cached/shared
-			
+
 			% 			% INITIALIZE TO EMPTY STRUCTURE
 			% 			initTaskData = struct.empty();
 			%
@@ -145,7 +145,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			% 			fillPropsFromStruct(obj, initTaskData);
 			if ~obj.IsConfigured
 				configure(obj)
-			end				
+			end
 			if ~isempty(obj.InitializeTask)
 				execute(obj.InitializeTask)
 				out = obj.InitializeTask.Output;
@@ -168,11 +168,11 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			if ~isempty(obj.TaskList)
 				execute(obj.TaskList)
 			end
-			
+
 		end
 	end
-	
-	
+
+
 	methods
 		function delete(obj)
 			tryDelete(obj.TaskList)
@@ -180,19 +180,19 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			tryDelete(obj.ControlInterface)
 			tryDelete(obj.StateInterface)
 			tryDelete(obj.OutputStream)
-						
+
 			function tryDelete(o)
 				try
 					delete(o)
 				catch
-				end					
+				end
 			end
 		end
 	end
-	
-	
-	
-	methods (Access = protected)		
+
+
+
+	methods (Access = protected)
 		function configVals = getConfigurationValues(obj)
 			% configVals = getConfigurationValues(obj)
 			% Return the values stored in properties labeled 'CONFIGURATION' in cell array
@@ -205,9 +205,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		function me = handleError(obj, me)
 			% 		function logTaskError(~,src,evnt)
 			% todo
-			
+
 			% todo: handleError(obj, futureObj)
-			
+
 			% 			fprintf('An error occurred : src,evnt sent to base workspace\n')
 			% 			assignin('base','src',src);
 			% 			assignin('base','evnt',evnt);
@@ -215,26 +215,26 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			rethrow(me); %TODO
 		end
 	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 end
 
 

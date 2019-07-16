@@ -1,42 +1,42 @@
 classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
-	
-	
-	
-	
+
+
+
+
 	% USER SETTINGS
 	properties (Access = public)
-		
+
 	end
 	properties (SetAccess = immutable)
 		PreallocationSize = 64
 	end
-	
-	
+
+
 	% ARRAY OF FRAME-LINKED-REGIONS
 	properties (Dependent)
 		FrameLink
 	end
 	properties (SetAccess = protected, Hidden)
-		pFrameLink @cell %@FrameLinkedRegion vector
+		pFrameLink cell %@FrameLinkedRegion vector
 		pFrameLinkLast(1,1) FrameLinkedRegion
 		pFrameLinkIdx(:,1) uint32
 	end
-	
-	
+
+
 	% HANDLES TO CONVERGING/DIVERGING/INTERSECTING SISTER REGIONS
 	properties (SetAccess = protected)
 		IntersectingRegion(:,1) PropagatingRegion
 		DivergenceFrameIdx
 		ConvergenceFrameIdx
 	end
-	
+
 	% CONSUMER CONFIDENCE
 	properties (SetAccess = protected)
 		NumPropagation = 0
-		NumCopagation = 0		
+		NumCopagation = 0
 		Confidence(1,1) double
 	end
-	
+
 	% FRAME-LINKED-SUMMARY
 	properties (Dependent)
 		FilledFramesIdx
@@ -46,15 +46,15 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 		DivergenceCount
 		ConvergenceCount
 	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
 	% CONSTRUCTOR
 	methods
 		function obj = PropagatingRegion(frameLinkedRegions, varargin)
@@ -85,28 +85,28 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 			end
 		end
 	end
-	
+
 	% DISPLAY METHODS
 	methods
 	end
-	
+
 	% LINKING METHODS
 	methods
 		function varargout = propagate(obj, r2)
 			% 			[obj, splitPropRegion, newPropRegion] = propagate(obj, varargin)
 			minFracOv = .5;
 			%minArea?
-			
+
 			% CHECK FOR UNINITIALIZED OBJECTS
 			r1 = getLastFrameLink(obj);
 			% 			flEmpty = false(size(r1));
 			% 			for k=1:numel(r1)
 			% 				flEmpty(k) = isempty(r1(k));
 			% 			end
-			
+
 			if ~isempty(r1)
 				% 				obj = obj(~flEmpty);
-				
+
 				% CONSTRUCT MAP BETWEEN ALL OVERLAPPING UIDS
 				r1IdxMat = r1.createLabelMatrix;
 				r2IdxMat = r2.createLabelMatrix;
@@ -117,7 +117,7 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				uniqueIdxPairMap = unique(idx2idxMap, 'rows');
 				% 				[uniqueUidPairMap, uIdx, ~] = unique(uid2uidMap, 'rows');
 				% 				uniqueIdxPairMap = idx2idxMap(uIdx,:);
-				
+
 				% COUNT & SORT BY RELATIVE AREA OF OVERLAP
 				pxOverlapCount = sum( all( bsxfun(@eq,...
 					reshape(idx2idxMap, size(idx2idxMap,1), 1, size(idx2idxMap,2)),...
@@ -130,7 +130,7 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				idx = uniqueIdxPairMap(fracOvSortIdx,:);
 				r1MapSum = accumarray(idx(:,1), 1, size(r1));
 				r2MapSum = accumarray(idx(:,2), 1, size(r2));
-				
+
 				% PROPAGATE MAPPED REGIONS, ONE-TO-ONE MAPPING
 				objKeep = false(size(obj));
 				isOne2One = ((r1MapSum(idx(:,1))==1)&(r2MapSum(idx(:,2))==1));
@@ -144,7 +144,7 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 					% 					omr.NumPropagation = omr.NumPropagation + 1;
 					objKeep(oIdx) = true;
 				end
-				
+
 				% PROPAGATE MAPPED REGIONS, COPY-SPLITTING AS NECESSARY TO HANDLE MULTI-MAP CASE
 				splitPropRegion = PropagatingRegion.empty;
 				idxMulti = idx(~isOne2One,:);
@@ -154,11 +154,11 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				for k=1:size(idxMulti,1)
 					oIdx = idxMulti(k,1);
 					rIdx = idxMulti(k,2);
-					
+
 					if multiPropagated(k)
 						continue
 					end
-					
+
 					if (r1MapSum(oIdx)>1) % DIVERGING REGION --------
 						multiK = (idxMulti(:,1) == oIdx);
 						fracOvSum = sum(fracOvMulti(multiK,1));
@@ -168,18 +168,18 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 							rmr = r2(rIdx);
 							omr.DivergenceFrameIdx = cat(1, omr.DivergenceFrameIdx, rmr.FrameIdx);
 							for km = 2:numel(rmr)
-								newSplitRegion = copyElement(omr); % copy 
+								newSplitRegion = copyElement(omr); % copy
 								newSplitRegion.IntersectingRegion = cat(1,newSplitRegion.IntersectingRegion, omr); % link with handle to original
 								addFrameLink(newSplitRegion, rmr(km)); % add secondary region to copy
 								splitPropRegion = cat(1, splitPropRegion, newSplitRegion); % add with any other split-off region-copies
 								omr.IntersectingRegion = cat(1, omr.IntersectingRegion, newSplitRegion); % link original with handle to split
-							end							
+							end
 						else
 							omr = obj(oIdx);
 							rmr = r2(rIdx);
-						end						
+						end
 						addFrameLink(omr, rmr(1)); % add region to original
-						
+
 					elseif (r2MapSum(rIdx)>1) % CONVERGING REGION -------
 						multiK = (idxMulti(:,2) == rIdx);
 						fracOvSum = sum(fracOvMulti(multiK,2));
@@ -196,9 +196,9 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 						else
 							omr = obj(oIdx);
 							rmr = r2(rIdx);
-						end												
+						end
 						addFrameLink(omr(1), rmr);% add copy of frame-linked-region to each handle (propagating region)
-						numConverge = numel(omr);						
+						numConverge = numel(omr);
 						for kc = 1:numConverge %link handles to each other
 							convergeGrp = false(numConverge,1);
 							convergeGrp(kc) = true;
@@ -209,7 +209,7 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 					multiPropagated = multiPropagated | multiK;
 					objKeep(oIdx) = true;
 				end
-				
+
 				% PROPAGATE UNMAPPED REGIONS BY [COPYING] LAST FRAME-LINKED-REGION
 				% 				t = hat;%TODO
 				% 				propCopIdx = find(r1MapSum==0);
@@ -224,34 +224,34 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				% 				flcop = getLastFrameLink(opc);
 				% 					addFrameLink(opc, flcop(k));
 				% 					opc(k).NumCopagation = opc(k).NumCopagation + 1;
-				
+
 				% 					objKeep(pcIdx) = true;
 				% 				end
 				% 				fprintf('prop by copy time: %-03.4gms\n',(hat-t).*1000)%TODO
-				
+
 				% CREATE NEW PROPAGATING REGIONS FROM UNMAPPED INPUT
-				if any(r2MapSum==0)					
+				if any(r2MapSum==0)
 					newPropRegion = PropagatingRegion(r2(r2MapSum==0));
 				else
 					newPropRegion = PropagatingRegion.empty;
 				end
-				
+
 				% OUTPUT
 				obj = obj(objKeep);
-				
+
 				catch me
 					msg = getError(me);
-					disp(msg)					
+					disp(msg)
 					newPropRegion = PropagatingRegion.empty;
-					splitPropRegion = PropagatingRegion.empty;					
+					splitPropRegion = PropagatingRegion.empty;
 				end
-				
+
 			else
 				% PREALLOCATE/DEFINE BLANK OUTPUT TYPE WITH INITIALIZED OBJECTS
 				newPropRegion = PropagatingRegion.empty;
 				splitPropRegion = PropagatingRegion.empty;
 				obj = PropagatingRegion(r2);
-				
+
 			end
 			if nargout == 1
 				varargout{1} = {obj, splitPropRegion, newPropRegion};
@@ -259,10 +259,10 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				argsOut = {obj, splitPropRegion, newPropRegion};
 				varargout = argsOut(1:nargout);
 			end
-			
+
 		end
 	end
-	
+
 	% PROPERTY UPDATE
 	methods
 		function updateEssentialProps(obj)
@@ -270,28 +270,28 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 			N = numel(obj);
 			for k=1:N
 				flr = obj(k).FrameLink(:);
-				M = numel(flr);				
-				
+				M = numel(flr);
+
 				% AREA
 				obj(k).Area = mean(cat(1,flr.Area),1,'native');
-				
+
 				% CENTROID
 				cxy = cat(1,flr.Centroid);
 				obj(k).Centroid = round(mean(cxy,1,'native'));
-				
+
 				% BOUNDINGBOX (from top-left corner)
 				bb = cat(1, flr.BoundingBox);
 				fxlim = [min(bb(:,1)) , max(bb(:,1)+bb(:,3))];
-				fylim = [min(bb(:,2)) , max(bb(:,2)+bb(:,4))];				
+				fylim = [min(bb(:,2)) , max(bb(:,2)+bb(:,4))];
 				leftEdge = fxlim(1);
-				topEdge = fylim(1);				
+				topEdge = fylim(1);
 				width = fxlim(2)-fxlim(1);
 				height = fylim(2)-fylim(1);
 				obj(k).BoundingBox = [leftEdge, topEdge, width, height];
-				
+
 				% PIXELIDXLIST
 				obj(k).PixelIdxList = unique(cat(1,flr.PixelIdxList));
-				
+
 				% PIXELLIST (SubScripts)
 				if ~isempty(flr(1).PixelList)
 					obj(k).PixelList = unique(cat(1,flr.PixelList),'rows');
@@ -300,15 +300,15 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 		end
 		function averageScalarProps(obj)
 			N = numel(obj);
-			scalarProps = obj.regionStats.scalar;			
-			for k=1:N			
+			scalarProps = obj.regionStats.scalar;
+			for k=1:N
 				flr = obj(k).FrameLink(:);
 				for m = 1:numel(scalarProps)
 					propName = scalarProps{m};
 					propVal = mean(cat(1, flr.(propName)),1,'native');
 					obj(k).(propName) = propVal;
 					% 					obj(k).(propName) = cast(propVal, 'like', obj(k).(propName));
-				end					
+				end
 			end
 		end
 		function S = getIntensity(obj)
@@ -328,11 +328,11 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				S(k).Idx = allIdx{k};
 				S(k).MaxIntensity = cat(1, flr.MaxIntensity);
 				S(k).MinIntensity = cat(1, flr.MinIntensity);
-				S(k).MeanIntensity = cat(1, flr.MeanIntensity);				
+				S(k).MeanIntensity = cat(1, flr.MeanIntensity);
 			end
 		end
 	end
-	
+
 	% FRAME-LINK MANAGMENT
 	methods (Access = protected, Hidden)
 		function initFrameLink(obj, link)
@@ -344,8 +344,8 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 				linkFrameIdx = repelem(linkFrameIdx, nObj);
 				link = repelem(link, nObj);
 			end
-			for k=1:nObj				
-				% CHECK PREALLOCATION				
+			for k=1:nObj
+				% CHECK PREALLOCATION
 				% 				obj(k).pFrameLink = repelem({link(k)}, initSize);
 				obj(k).pFrameLink = cell(initSize,1);
 				obj(k).pFrameLink{1} = link(k);
@@ -357,20 +357,20 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 		function addFrameLink(obj, link)
 			initSize = obj.PreallocationSize;
 			linkFrameIdx = link.FrameIdx;
-			
+
 			pidx = obj.pFrameLinkIdx;
 			idx = pidx(pidx>0);
 			nIdx = length(idx);
 			curLength = length(pidx);
-			
+
 			% ALLOCATE MORE SPACE IF NECESSARY
 			if ((nIdx+1) > curLength)
 				obj.pFrameLink = cat(1, obj.pFrameLink, cell(initSize,1));
 				obj.pFrameLinkIdx(curLength+(1:initSize)) = 0;
 			end
-			
+
 			% ADD FRAME-LINKED-REGION & FRAME-IDX
-			obj.pFrameLinkIdx(nIdx+1) = linkFrameIdx;			
+			obj.pFrameLinkIdx(nIdx+1) = linkFrameIdx;
 			obj.pFrameLink{nIdx+1} = link;
 			obj.pFrameLinkLast = link;
 		end
@@ -393,11 +393,11 @@ classdef PropagatingRegion  <  ImageRegion  &  matlab.mixin.Copyable
 			% 			idx = pidx(pidx>0);
 		end
 	end
-	
-	
-	
-	
-	
+
+
+
+
+
 end
 
 
@@ -418,16 +418,16 @@ end
 % ADDFRAMELINK - FOR MULTIPLE INPUT (NOT USED)
 % 			for k=1:numel(obj)
 % 				pidx = obj(k).pFrameLinkIdx;
-% 				idx = pidx(pidx>0);				
+% 				idx = pidx(pidx>0);
 % 				nIdx = numel(idx);
 % 				curLength = length(pidx);
-% 				
+%
 % 				% ALLOCATE MORE SPACE IF NECESSARY
-% 				if ((nIdx+nLink) > curLength)					
+% 				if ((nIdx+nLink) > curLength)
 % 					obj(k).pFrameLink = cat(1, obj.pFrameLink, cell(initSize,1));
 % 					obj(k).pFrameLinkIdx(curLength+(1:initSize)) = 0;
 % 				end
-% 				
+%
 % 				% ADD FRAME-LINKED-REGION & FRAME-IDX
 % 				obj(k).pFrameLinkIdx(nIdx+(1:nLink)) = linkFrameIdx;
 % 				for m=1:nLink

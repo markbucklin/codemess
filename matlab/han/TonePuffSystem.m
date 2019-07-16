@@ -1,7 +1,7 @@
 classdef TonePuffSystem < SubSystem
-   
-   
-   
+
+
+
    properties
 	  experimentStartDelay = 10
 	  frameClkFrequency = 20
@@ -30,7 +30,7 @@ classdef TonePuffSystem < SubSystem
 	  stimulusSet(:,1) cell
 	  currentStimulusNumber = 0
 	  currentTrialNumber = 0
-	  frameClkSession@daq.ni.Session
+	  frameClkSession daq.ni.Session
 	  frameClkChannel
 	  frameCounterSession
 	  frameCounterChannel
@@ -53,10 +53,10 @@ classdef TonePuffSystem < SubSystem
    properties (Hidden)
 	  lastError
    end
-   
-   
-   
-   
+
+
+
+
    events
 	  ExperimentStart
 	  ExperimentStop
@@ -64,9 +64,9 @@ classdef TonePuffSystem < SubSystem
 	  NewStimulus
 	  FrameAcquired
    end
-   
-   
-   
+
+
+
    methods
 	  function obj = TonePuffSystem(varargin)
 		 if nargin > 1
@@ -300,12 +300,12 @@ classdef TonePuffSystem < SubSystem
 			   % 			   textfilepath  = fullfile(obj.currentExperimentName, ['first_frames_',obj.currentExperimentName,'.txt']);
 			   % 			   fid = fopen(textfilepath, 'wt');
 			   % 			   fprintf(fid, '%i\n',obj.trialFirstFrame);
-			   % 			   fclose(fid);			   
+			   % 			   fclose(fid);
 			   % 			if logical(obj.autoSyncTrialTime) && ~isempty(obj.autoSyncTimerObj)
 			   % 			   obj.autoSyncTimerObj.stop();
 			   % 			end
 			   fprintf('Experiment Stopped\n');
-			   
+
 			end
 		 catch me
 			notify(obj,'ExperimentStop')
@@ -366,7 +366,7 @@ classdef TonePuffSystem < SubSystem
 				  'rootPath',obj.currentDataSetPath,...
 				  'experimentName',obj.currentExperimentName);%changed rootPath from sessionPath
 			end
-			
+
 			% EVERY FRAME
 			frameInfo.frameNumber = frameNum;
 			frameInfo.triggerTime = evnt.TriggerTime;
@@ -407,7 +407,7 @@ classdef TonePuffSystem < SubSystem
 		 catch me
 			obj.lastError = me;
 		 end
-		 
+
 	  end
 	  function autoSyncTimerFcn(obj,~,~)
 		 % 		 obj.numRewardsMissed = obj.numRewardsMissed + 1;
@@ -444,7 +444,7 @@ classdef TonePuffSystem < SubSystem
 		 obj.trialStateListener = addlistener(obj.trialSyncObj,...
 			'NewTrial',@(src,evnt)trialStateChangeFcn(obj,src,evnt));
 		 obj.trialStateListener.Enabled = false;
-		 
+
 	  end
 	  function set.frameSyncObj(obj,cam)
 		 if ~isempty(obj.frameSyncListener)
@@ -480,6 +480,6 @@ classdef TonePuffSystem < SubSystem
 		 end
 	  end
    end
-   
+
 end
 

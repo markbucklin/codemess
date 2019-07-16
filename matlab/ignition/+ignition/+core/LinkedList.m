@@ -1,38 +1,38 @@
 classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 		LinkedList < handle & matlab.mixin.Heterogeneous
-	
-	
-	
+
+
+
 	properties (Transient, SetAccess = ?ignition.core.Object)
-		First @ignition.core.LinkedListNode scalar
-		Last @ignition.core.LinkedListNode scalar
+		First ignition.core.LinkedListNode scalar
+		Last ignition.core.LinkedListNode scalar
 		Count = 0
 	end
 	properties % Access = protected
-		NodeArray @ignition.core.LinkedListNode vector
+		NodeArray ignition.core.LinkedListNode vector
 	end
-	
-	
-	
+
+
+
 	methods
 		function obj = LinkedList(numNodes)
-			
+
 			if nargin
 				obj.NodeArray(numNodes) = ignition.core.LinkedListNode();
 			end
-			
+
 		end
 		function add(obj, nodeContents)
-			
+
 			% GET CURRENT & REQUIRED ARRAY-SIZE
 			currentCount = obj.Count;
 			currentCapacity = numel(obj.NodeArray);
 			numNewNodes = numel(nodeContents);
 			newCount = currentCount + numNewNodes;
-			
+
 			% GET INDEX INTO INTERNAL NODE-ARRAY FOR ADDED ELEMENTS
 			newIdx = currentCount + (1:numNewNodes);
-			
+
 			% EXPAND SIZE OF LINKED NODE ARRAY
 			if (newCount > currentCapacity)
 				obj.NodeArray(newCount) = ignition.core.LinkedListNode();
@@ -42,7 +42,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 					k = k + 1;
 				end
 			end
-			
+
 			% ASSIGN NODE CONTENTS
 			setNodeValue(obj.NodeArray(newIdx), nodeContents);
 			% 			if iscell(nodeContents)
@@ -52,15 +52,15 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			% 					obj.NodeArray(k).Value = nodeContents(k);
 			% 				end
 			% 			end
-			
-			
+
+
 			% 			obj.NodeArray(newIdx) = ignition.core.LinkedListNode(nodeContents, obj.Last);
 			% UPDATE INTERNAL COUNT & REFERENCES TO FIRST & LAST NODES
 			updateCount(obj, newCount);
 			% 			obj.Count = newCount;
 			% 			obj.First = obj.NodeArray(1);
 			% 			obj.Last = obj.NodeArray(newCount);
-			
+
 		end
 		function addFirst(obj, node)
 			currentFirst = obj.First;
@@ -88,9 +88,9 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				obj.First = obj.NodeArray(1);
 				obj.Last = obj.NodeArray(end);
 			catch
-				
+
 			end
-			
+
 		end
 		function node = removeFirst(obj, numNodes)
 			if nargin < 2
@@ -101,7 +101,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				obj.First = obj.NodeArray(numNodes + 1);
 				obj.NodeArray(1:numNodes) = [];
 			end
-			
+
 		end
 		function node = removeLast(obj, numNodes)
 			if nargin < 2
@@ -115,7 +115,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			updateCount(obj, newCount)
 		end
 		function node = copyNode(obj, idx)
-			
+
 			%todo
 			if obj.Count < 1
 				node = ignition.core.LinkedListNode();
@@ -130,7 +130,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 				currentPreviousNode = currentArrayFirst.Previous;
 				node = ignition.core.LinkedListNode([currentNodeArray.Value], currentPreviousNode);
 			catch
-				
+
 			end
 		end
 		function firstNode = getFirst(obj)
@@ -140,7 +140,7 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			lastNode = obj.Last;
 		end
 	end
-	
+
 	methods (Access = protected)
 		function updateCount(obj, newCount)
 			obj.Count = newCount;
@@ -148,13 +148,13 @@ classdef (CaseInsensitiveProperties, TruncatedProperties) ...
 			obj.Last = obj.NodeArray(newCount);
 		end
 	end
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
 end
 
 

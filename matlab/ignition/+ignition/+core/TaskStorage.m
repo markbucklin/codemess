@@ -1,36 +1,36 @@
 classdef TaskStorage < ignition.core.object & handle
 	% TaskStorage - provides initialization, update, and recursion & storage of a persistent variables used by a Task
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
 		properties (SetAccess = protected)
-			InitializeOp @ignition.core.Operation
-			PreTaskOp @ignition.core.Operation
-			PostTaskOp @ignition.core.Operation
+			InitializeOp ignition.core.Operation
+			PreTaskOp ignition.core.Operation
+			PostTaskOp ignition.core.Operation
 			DependentTaskObj
 			DependentTaskInputIdx
 		end
 		properties (SetAccess = protected, SetObservable)
 			Storage struct
 		end
-		
+
 		% ConstantCache
 		% DynamicCache
 		% TaskVolatileCache
 		% TunableCache
-		
-		
+
+
 		methods
 			function obj = TaskStorage(varargin)
 				if nargin
 					parseConstructorInput(obj, varargin{:});
 				end
-					
-			end			
+
+			end
 			function lock(obj)
 			end
 			function release(obj)
@@ -40,16 +40,16 @@ classdef TaskStorage < ignition.core.object & handle
 			function update(obj, stor)
 			end
 		end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
 end
 
 
@@ -63,7 +63,7 @@ end
 % cm = ignition.alpha.CacheManager
 % cs = cm.CacheStore
 % setupForExecution( cm, fields(obj.Cache) ) % ??
-% 
+%
 
 % TWO-LEVEL-CACHE
 % obj = ignition.alpha.TwoLevelCache

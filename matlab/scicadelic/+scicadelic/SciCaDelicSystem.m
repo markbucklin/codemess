@@ -1,17 +1,17 @@
 classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
-%	
-% The System object™ interface
-% 
+%
+% The System objectï¿½ interface
+%
 % System objects are MATLAB classes that derive from matlab.System. As a result, System objects all
 % inherit a common public interface, which includes the following standard methods:
-% 
+%
 % setup - to initialize the object, typically at the beginning of a simulation reset - to clear the
 % internal state of the object, bringing it back to its default post-initialization status step - to
 % execute the core functionality of the object, optionally accepting some input and/or returning
 % some output release - to release any resources (e.g. memory, hardware, or OS-specific) used
 % internally by the object When you create new kinds of System objects, you provide specific
 % implementations for all the preceding methods to determine its behavior.
-	
+
 	% USER SETTINGS
 	properties (Access = public)
 		UseGpu(1,1) logical
@@ -20,7 +20,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 		UseInteractive(1,1) logical = false
 		CheckCapabilities(1,1) logical = true
 	end
-	
+
 	% COMPUTER CAPABILITIES & DEFAULTS
 	properties (SetAccess = protected)
 		CanUseGpu(1,1) logical
@@ -37,17 +37,17 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 		SettableProps
 		GpuDevice
 	end
-	
+
 	% STATUS
 	properties (Access = protected, Transient, Hidden)
 		StatusHandle
-		StatusString@char
+		StatusString char
 		StatusNumber
 	end
 	properties (Constant, Access = protected, Hidden)
 		StatusUpdateInterval = .15
 	end
-	
+
 	% INPUT/OUTPUT DESCRIPTION
 	properties (SetAccess = protected )%, Hidden)
 		NFrames%TODO
@@ -61,10 +61,10 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 	end
 	properties (SetAccess = protected)%, Hidden)  % TODO: NonTunable... caused fatal errors?? cant remember
 		FrameSize
-		InputDataType@char
-		OutputDataType@char
+		InputDataType char
+		OutputDataType char
 	end
-	
+
 	% TUNING
 	properties (SetAccess = protected, Hidden)
 		TuningImageDataSet
@@ -84,18 +84,18 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 		TuningAutoProgressiveUpdateTimerObj
 		TuningFigureNeedsUpdate = false;
 	end
-	
+
 	% PRIVATE COPIES
 	properties (SetAccess = protected, Hidden)
-		pUseGpu @logical
-		pUsePct @logical
-		pUseBuffer @logical
+		pUseGpu logical
+		pUsePct logical
+		pUseBuffer logical
 	end
-	
-	
-	
-	
-	
+
+
+
+
+
 	methods
 		function obj = SciCaDelicSystem(varargin)
 			if obj.CheckCapabilities
@@ -181,7 +181,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			setPrivateProps(obj)
 		end
 		function checkCapabilitiesAndPreferences(obj)
-			
+
 			% CHECK STATE/EXISTENCE OF TOOLBOX PREFERENCES -> ADDPREFS
 			tlbx = 'scicadelic';
 			if ~ispref(tlbx)
@@ -200,7 +200,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				% 					{'yes','no'});
 			end
 			gpref = getpref(tlbx);
-			
+
 			% INITIALIZE GLOBAL VARIABLES
 			global COMPUTERCAPABILITY
 			% 			global GLOBALPREFERENCE
@@ -212,8 +212,8 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			% 			end
 			thiscomputer = COMPUTERCAPABILITY;
 			% 			gpref = GLOBALPREFERENCE;
-			
-			
+
+
 			% CHECK GPU-PROCESSING ABILITY
 			if isempty(thiscomputer.CanUseGpu)
 				try
@@ -229,12 +229,12 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					thiscomputer.CanUseGpu = false;
 				end
 			end
-			
+
 			% ASSIGN CUDA-DEVICE OBJECT TO GPUDEVICE PROPERTY
 			if thiscomputer.CanUseGpu
 				obj.GpuDevice = gpuDevice;
 			end
-			
+
 			% SET MEMBER OPTION TO GLOBAL PREFERENCE IF EMPTY, OR PREF IS TO NOT USE GPU
 			if thiscomputer.CanUseGpu
 				obj.CanUseGpu = true;
@@ -252,8 +252,8 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			% 			if isempty(obj.UseGpu)
 			obj.UseGpu = gpref.UseGpu;
 			% 			end
-			
-			
+
+
 			% CHECK PARALLEL-PROCESSING ABILITY (USING PARALLEL COMPUTING TOOLBOX)
 			if isempty(thiscomputer.CanUsePct)
 				versionInfo = ver;
@@ -264,7 +264,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					thiscomputer.CanUsePct = false;
 				end
 			end
-						
+
 			if thiscomputer.CanUsePct
 				obj.CanUsePct = true;
 				if isempty(gpref.UsePct)
@@ -282,7 +282,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			% 			if isempty(obj.UsePct)
 			obj.UsePct = gpref.UsePct;
 			% 			end
- 			
+
 			fn = fields(gpref);
 			for k=1:numel(fn)
 				if isempty(gpref.(fn{k}))
@@ -292,7 +292,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					obj.(fn{k}) = gpref.(fn{k});
 				end
 			end
-			
+
 			fn = fields(thiscomputer);
 			for k=1:numel(fn)
 				if isempty(thiscomputer.(fn{k}))
@@ -300,13 +300,13 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				end
 				obj.(fn{k}) = thiscomputer.(fn{k});
 			end
-			
+
 			try
 				parallel.gpu.rng(7301986,'Philox4x32-10');
 			catch me
 				getReport(me)
 			end
-			
+
 			% 			GLOBALPREFERENCE = gpref;
 			COMPUTERCAPABILITY = thiscomputer;
 		end
@@ -395,13 +395,13 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			if nargin < 4
 				hSize = 2*ceil(2 * sigma)+1;
 			end
-			
+
 			% CALCULATE COEFFICIENTS
 			H = rot90(fspecial('gaussian', hSize, sigma),2);
 			[sepcoeff, hcol, hrow] = isfilterseparable(H);
 			hCenter = floor((size(H)+1)/2);
 			hPad = hSize - hCenter;
-			
+
 			% CREATE SUBREFERENCE STRUCTURE FOR DEPADDING
 			imCenter = floor((imSize+1)/2) + hPad;
 			if obj.UseGpu
@@ -413,7 +413,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			subrefDePad.subs = {...
 				subsCenteredOn(imCenter(2),imSize(2)),...
 				subsCenteredOn(imCenter(1),imSize(1))};
-			
+
 			% CONSTRUCT FILTER FUNCTION ->  CONV2 - GPU
 			if obj.UseGpu
 				if sepcoeff
@@ -447,10 +447,10 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				end
 				filterFcn = cfcn;
 			end
-			
+
 			% CLEAN ANONYMOUS FUNCTION WORKSPACE
 			% 			filterFcn = str2func(func2str(filterFcn)); % Recently uncommented (was commented out because imcompatible with codegen)
-			
+
 			if nargout
 				varargout{1} = filterFcn;
 				if nargout > 1
@@ -465,7 +465,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			obj.ChildSystem{n+1} = child;
 		end
 	end
-	
+
 	% TUNING
 	methods
 		function tune(obj, tuningData)
@@ -473,14 +473,14 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			if isLocked(obj)
 				release(obj)
 			end
-			
+
 			% INITIALIZATION
 			checkInput(obj, tuningData)
 			fillDefaults(obj)
 			tuneLimitScalingFactors(obj, tuningData)
 			obj.TuningImageDataSet = tuningData;
 			obj.TuningImageIdx = 1;
-			
+
 			% RUN SUB-CLASS-DEFINED TUNING FUNCTIONS
 			setPrivateProps(obj)
 			if obj.UseInteractive
@@ -499,7 +499,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			% 				fprintf('superclass processdata call from checkInput\n')
 			% 				output = processData(obj, data);
 			% 				obj.OutputDataType = getClass(obj, output);
-			
+
 			if isempty(obj.OutputDataType)
 				obj.OutputDataType = obj.InputDataType;
 			end
@@ -522,11 +522,11 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					end
 					dataStd = std(double(data(:)));
 					% 				if isinteger(data) % TODO
-					
+
 					if isinteger(data)
 					A = intmin(obj.OutputDataType);
 					Z = intmax(obj.OutputDataType);
-										
+
 					if isempty(obj.OutputRange)
 						obj.OutputRange = double([A , Z-dataStd]);
 					else
@@ -535,7 +535,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					else
 						obj.OutputRange = [0 1];
 					end
-					
+
 					obj.InputScale = double(obj.InputRange(2) - obj.InputRange(1));
 					obj.InputOffset = double(obj.InputRange(1));
 					obj.OutputScale = double(obj.OutputRange(2) - obj.OutputRange(1));
@@ -581,9 +581,9 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 	methods (Abstract, Access = protected, Hidden)
 		setPrivateProps(obj)
 	end
-	
+
 	% INITIALIZATION HELPER METHODS
-	methods (Access = protected)			
+	methods (Access = protected)
 		function fetchPropsFromGpu(obj)
 			oMeta = metaclass(obj);
 			oProps = oMeta.PropertyList(:);
@@ -636,7 +636,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			inactiveColor = [.6 .6 .6 .2];
 			otherColor = [.95 .95 .95 .5];
 			cmap = gray(256);
-			
+
 			% INPUT IMAGE
 			if isempty(obj.TuningImageDataSet)
 				tuningDataInput = zeros(obj.FrameSize, 'double');
@@ -648,14 +648,14 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				'Units','normalized',...
 				'Position',[0 0 .5 1]));
 			h.imInput = handle(imagesc(tuningDataInput, 'Parent', h.axInput));
-			
+
 			% OUTPUT IMAGE
 			tuningDataOutput = zeros(obj.FrameSize, 'double');
 			h.axOutput = handle(axes('Parent',h.fig,...
 				'Units','normalized',...
 				'Position',[.5 0 .5 1]));
 			h.imOutput = handle(imagesc(tuningDataOutput, 'Parent',h.axOutput));
-			
+
 			% COMPOSITE IMAGE
 			tuningDataComposite = cat(3,...
 				scaleForComposite(obj, tuningDataOutput),...
@@ -665,7 +665,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				'Units','normalized',...
 				'Position',[0 0 1 1]));
 			h.imComposite = handle(image(tuningDataComposite, 'Parent',h.axComposite));
-			
+
 			if obj.TuningFigureOverlayResult
 				h.imInput.Visible = 'off';
 				h.imOutput.Visible = 'off';
@@ -674,10 +674,10 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				h.imComposite.Visible = 'off';
 				h.axCurrent = h.axOutput;
 			end
-			
+
 			h.ax = [h.axInput, h.axOutput, h.axComposite];
 			h.im = [h.imInput, h.imOutput, h.imComposite];
-			
+
 			% FIGURE PROPERTIES
 			set(h.fig,...
 				'Color',[.2 .2 .2],...
@@ -691,7 +691,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				'Clipping','on')
 			h.fig.Position = [0 0 1 1];
 			h.fig.Colormap = cmap;
-			
+
 			% AXES PROPERTIES
 			set(h.ax,...
 				'xlimmode','manual',...
@@ -719,7 +719,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				set(h.ax, 'DrawMode','fast');
 			end
 			% 			h.ax.Units = 'normalized'; h.ax.Position = [0 0 1 1];
-			
+
 			% TEXT FOR TUNING STEPS (PARAMETER NAMES & VALUES)
 			imWidth = obj.FrameSize(1);
 			imHeight = obj.FrameSize(2);
@@ -743,7 +743,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				textPosition = textPosition + [0 h.txParameter(k).Extent(4)];%h.txParameter(k).Extent(4)+textBlockSpacing 0];
 			end
 			h.txParameter(1).Color = activeColor;
-			
+
 			% TEXT FOR CURRENT FRAME AND STATS
 			idxText = sprintf('Frame Index: %i', obj.TuningImageIdx);%TODO
 			h.txIdx = handle(text(...
@@ -791,16 +791,16 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				'Parent', h.axInput));
 			h.txInputCLim.Position = [infoTextPosition(1)...
 				h.txTime.Extent(2)+h.txTime.Extent(4)/2+2];
-			
+
 			h.tx = [h.txParameter(:)' , h.txIdx , h.txTime , h.txOutputCLim];
 			set(h.tx, 'Parent', h.axCurrent);
 			assignin('base','h',h);
-			
+
 			obj.TuningCurrentStep = 1;
 			h.fig.WindowKeyPressFcn = @(src,evnt)keyPressFcn(obj,src,evnt);
 			h.fig.WindowKeyReleaseFcn = @(src,evnt)keyReleaseFcn(obj,src,evnt);
 			obj.TuningFigureHandles = h;
-			
+
 			% DELAYED-UPDATE TIMER OBJECT
 			obj.TuningDelayedUpdateTimerObj = timer(...
 				'BusyMode','drop',...
@@ -823,7 +823,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			end
 			curStep = obj.TuningCurrentStep;
 			numSteps = numel(obj.TuningStep);
-			
+
 			modKey = evnt.Modifier;
 			obj.TuningFigureNeedsUpdate = true;
 			switch evnt.Key;
@@ -838,7 +838,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					if isempty(modKey) % RIGHT: NEXT FRAME
 						obj.TuningImageIdx = min(obj.TuningImageIdx + 1,...
 							size(obj.TuningImageDataSet,3));
-					elseif all(strcmp('control',modKey)) % CTRL-RIGHT: 
+					elseif all(strcmp('control',modKey)) % CTRL-RIGHT:
 						if isempty(obj.TuningAutoProgressiveUpdateTimerObj)
 							obj.TuningAutoProgressiveUpdateTimerObj = timer(...
 								'BusyMode','drop',...
@@ -919,10 +919,10 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 					% 					fprintf('KEYPRESS: %s\t', evnt.Key) fprintf('(%s)\t',evnt.Modifier{:})
 					% 					fprintf('[%s]\t',evnt.Character) fprintf('\n')
 			end
-			
+
 			% UPDATE
 			updateTuningText(obj)
-			
+
 		end
 		function keyReleaseFcn(obj,~,~)
 			timerIsRunning = strcmp('on',obj.TuningDelayedUpdateTimerObj.Running);
@@ -933,9 +933,9 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 		end
 		function stopAutoUpdateTimer(obj)
 			if ~isempty(obj.TuningAutoProgressiveUpdateTimerObj)...
-					&& isvalid(obj.TuningAutoProgressiveUpdateTimerObj)				
+					&& isvalid(obj.TuningAutoProgressiveUpdateTimerObj)
 							stop(obj.TuningAutoProgressiveUpdateTimerObj)
-							delete(obj.TuningAutoProgressiveUpdateTimerObj);							
+							delete(obj.TuningAutoProgressiveUpdateTimerObj);
 			end
 			obj.TuningAutoProgressiveUpdateTimerObj = [];
 		end
@@ -957,29 +957,29 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			curStep = obj.TuningCurrentStep;
 			obj.TuningImageIdx = min(max(obj.TuningImageIdx, 1), size(obj.TuningImageDataSet,3));
 			F = obj.TuningImageDataSet(:,:,obj.TuningImageIdx);
-			
+
 			% SEND INPUT TO GPU IF NECESSARY
 			if obj.UseGpu && ~isa(F, 'gpuArray')
 				Fstep = gpuArray(F);
 			else
 				Fstep = F;
 			end
-			
+
 			% CALL EACH PRECEDING FUNCTION WITH CHOSEN PARAMETERS
-			
+
 			if curStep >= 1
 				k=1;
 				completeStep = false;
 				while (k <= curStep) || (~completeStep)
 					parameterPropVal = obj.TuningStep(k).ParameterDomain(obj.TuningStep(k).ParameterIdx);
 					parameterPropName = obj.TuningStep(k).ParameterName;
-					
+
 					if iscell(parameterPropVal) % NEW!!
 						parameterPropVal = parameterPropVal{1};
 					end
-					
+
 					obj.(parameterPropName) = parameterPropVal;
-					completeStep = obj.TuningStep(k).CompleteStep;					
+					completeStep = obj.TuningStep(k).CompleteStep;
 					if completeStep
 						setPrivateProps(obj)
 						fcn = obj.TuningStep(k).Function;
@@ -994,7 +994,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			% 			if obj.TuningFigureAutoScale || isempty(obj.TuningFigureOutputCLim)
 			% 				obj.TuningFigureOutputCLim = onCpu(obj, [min(Fstep(:)) , max(Fstep(:))]);
 			% 			end
-			
+
 			% OVERLAY INPUT & OUTPUT OR SHOW SIDE-BY-SIDE
 			if obj.TuningFigureOverlayResult
 				Fin = scaleForComposite(obj, F, [0 1]);
@@ -1089,29 +1089,29 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			close(obj.TuningFigureHandles.fig);
 		end
 	end
-	
+
 	% DATA MANIPULATION
 	methods (Access = protected)
 		function F = onCpu(~, F)
 			if isa(F, 'gpuArray')
 				F = gather(F);
-				
+
 			elseif isa(F, 'struct')
 				sFields = fields(F);
 				for k=1:numel(sFields)
 					fn = sFields{k};
 					if isa([F.(fn)], 'gpuArray')
 						F.(fn) = gather(F.(fn)); %TODO: FOR STRUCTARRAYS
-					end					
+					end
 				end
-				
+
 			end
 		end
 		function F = onGpu(obj, F)
 			if obj.pUseGpu
 				if ~isa(F, 'gpuArray')
 					F = gpuArray(F);
-				
+
 				elseif isa(F, 'struct')
 					sFields = fields(F);
 					for k=1:numel(sFields)
@@ -1119,8 +1119,8 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 						if ~isa([F.(fn)], 'gpuArray')
 							F.(fn) = gpuArray(F.(fn)); %TODO: FOR STRUCTARRAYS
 						end
-						
-					end					
+
+					end
 				end
 			end
 		end
@@ -1132,7 +1132,7 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 			end
 		end
 	end
-	
+
 	% STATUS UPDATE METHODS
 	methods (Access = protected)
 		function openStatus(obj)
@@ -1174,20 +1174,20 @@ classdef (CaseInsensitiveProperties = true) SciCaDelicSystem < matlab.System
 				im = max(0,min(1,(double(im)-cLim(1))./(cLim(2)-cLim(1))));
 			end
 		end
-		
+
 	end
-	
-	
-	
+
+
+
 	methods (Access = protected)
-		
+
 	end
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 end
 
 
@@ -1203,7 +1203,6 @@ end
 
 
 % 	NET.addAssembly('System.Speech');
-% ss = System.Speech.Synthesis.SpeechSynthesizer; 
-% ss.Volume = 100 
+% ss = System.Speech.Synthesis.SpeechSynthesizer;
+% ss.Volume = 100
 % Speak(ss,'You can use .NET Libraries in MATLAB')
-	
