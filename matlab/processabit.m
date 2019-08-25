@@ -16,6 +16,7 @@ ccChunk = {};
 flrCell = {};
 rpCell = {};
 
+
 %%
 % t = tic;
 % pauseMsg = msgbox('Pause', 'Click to Pause','non-modal');
@@ -26,6 +27,7 @@ answer = inputdlg('process up to which frame number?');
 goToFrame = str2num(answer{1});
 idx=0;
 while idx(end)<goToFrame
+    try
     [f,info,mstat,frgb,srgb] = nextFcn();
     if isempty(f)
         break
@@ -33,30 +35,31 @@ while idx(end)<goToFrame
     %     rgbCell{end+1} = frgb;
     FdynamicRed = squeeze(frgb(:,:,1,:)); % use RED
     FdynamicBlue = squeeze(frgb(:,:,3,:)); % use BLUE
-    
+
 %     redThresh = 255 * graythresh( max(FdynamicRed,[],3) );
 %     blueThresh = 255 * graythresh( max(FdynamicBlue,[],3) );
 %     rThreshCell{end+1} = redThresh;
 %     bThreshCell{end+1} = blueThresh;
     redThresh = 15; blueThresh = 15;
-    
+
     Fmask = bsxfun(@or, (FdynamicRed > redThresh), FdynamicBlue > blueThresh);
-    Fmask = applyFunction2D( @bwareaopen, Fmask, 8);
+%     Fmask = applyFunction2D( @bwareaopen, Fmask, 8);
     Fmask = applyFunction2D( @bwmorph, Fmask, 'close');
 %     rCell{end+1} = FdynamicRed;
 %     bCell{end+1} =FdynamicBlue;
 %     maskCell{end+1} = Fmask;
-    
-    if info.idx(1) >= 0;
+
+    if info.idx(1) >= 60
         hasRoi = any(any(Fmask,1),2);
-        for k=1:size(info.idx)
+        for k=1:numel(info.idx)
             if hasRoi(k)
-                rp = regionprops(Fmask(:,:,k),{'Area','BoundingBox','Centroid','PixelIdxList'});
-%                 idx = info.idx(k);
-                rpCell{info.idx(k)} = rp;
+                maskCell{info.idx(k)} = gather(Fmask(:,:,k));
+%                 rp = regionprops(Fmask(:,:,k),{'Area','BoundingBox','Centroid','PixelIdxList'});
+%                 rpCell{info.idx(k)} = rp;
+
                 %             flr = RegionOfInterest(rp, 'FrameIdx',idx ,'FrameSize', [1024 1024]) ;
                 %             flrCell{idx} = flr;
-                
+
                 %             idx = info.idx(k);
                 %             flr = FrameLinkedRegion(rp, 'FrameIdx',idx ,'FrameSize', [1024 1024]) ;
                 %             flrCell{idx} = flr;
@@ -70,6 +73,9 @@ while idx(end)<goToFrame
     %         %         rChunk{end+1} = RegionOfInterest( any(Fmask,3));
     %     end
     idx = info.idx;
+    catch me
+        break
+    end
 end
 % imrgbplay( cat(4, rgbCell{:}))
 
