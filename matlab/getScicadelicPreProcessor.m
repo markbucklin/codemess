@@ -8,7 +8,7 @@ function [nextFcn, varargout] = getScicadelicPreProcessor(tiffLoader, saveBW,sav
 %  [f,info,mstat,frgb,srgb] = nextFcn()
 
 %%
-framesPerStep = 4;
+framesPerStep = 8;
 if nargin < 1
 	tiffLoader = []
 end

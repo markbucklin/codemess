@@ -34,11 +34,11 @@ while idx(end)<goToFrame
     FdynamicRed = squeeze(frgb(:,:,1,:)); % use RED
     FdynamicBlue = squeeze(frgb(:,:,3,:)); % use BLUE
     
-    redThresh = 255 * graythresh( max(FdynamicRed,[],3) );
-    blueThresh = 255 * graythresh( max(FdynamicBlue,[],3) );
-    rThreshCell{end+1} = redThresh;
-    bThreshCell{end+1} = blueThresh;
-%     redThresh = 15; blueThresh = 15;
+%     redThresh = 255 * graythresh( max(FdynamicRed,[],3) );
+%     blueThresh = 255 * graythresh( max(FdynamicBlue,[],3) );
+%     rThreshCell{end+1} = redThresh;
+%     bThreshCell{end+1} = blueThresh;
+    redThresh = 15; blueThresh = 15;
     
     Fmask = bsxfun(@or, (FdynamicRed > redThresh), FdynamicBlue > blueThresh);
     Fmask = applyFunction2D( @bwareaopen, Fmask, 8);
@@ -47,7 +47,7 @@ while idx(end)<goToFrame
 %     bCell{end+1} =FdynamicBlue;
 %     maskCell{end+1} = Fmask;
     
-    if info.idx(1) >= 60
+    if info.idx(1) >= 0;
         hasRoi = any(any(Fmask,1),2);
         for k=1:size(info.idx)
             if hasRoi(k)
@@ -112,7 +112,7 @@ R = reduceSuperRegions(R);
 % R = reduceSuperRegions(rSingle, maxCentroidSeparation, maxEdgeSeparation)
 % (or)
 % set(rSingle, 'MaxCentroidSeparation', 10)
-% set(rSignle, 'MaxEdgeSeparation', 45)
+% set(rSingle, 'MaxEdgeSeparation', 45)
 % set(rSingle, 'MinSufficientOverlap', .75)
 % R = reduceSuperRegions(rSingle);
 
@@ -142,8 +142,9 @@ traceOutRed = R.makeTraceFromVid(squeeze(Frgb(:,:,1,60:end)));
 % traceOutBlue = R.makeTraceFromVid(single(squeeze(Frgb(:,:,3,:))));
 traceOutBlue = R.makeTraceFromVid(squeeze(Frgb(:,:,3,60:end)));
 
-figure, plot(bsxfun( @plus, traceOutRed(60:end,randi([1 size(R,1)],1,100)), 3.*(0:99)))
-figure, plot(bsxfun( @plus, traceOutBlue(60:end,randi([1 size(R,1)],1,100)), 3.*(0:99)))
+figure, plot(bsxfun( @plus, traceOutRed(60:end,1:size(R,1)), 3.*(0:size(R,1)-1)))
+figure, plot(bsxfun( @plus, traceOutBlue(60:end,1:size(R,1)), 3.*(0:size(R,1)-1)))
+% figure, plot(bsxfun( @plus, traceOutBlue(60:end,randi([1 size(R,1)],1,100)), 3.*(0:99)))
 % figure,subplot(2,1,1),plot(bsxfun( @plus, traceOutRed(1000:end,randi([1 size(R,1)],1,100)), 3.*(0:99)))
 % subplot(2,1,2),plot(bsxfun( @plus, traceOutBlue(1000:end,randi([1 size(R,1)],1,100)), 3.*(0:99)))
 
