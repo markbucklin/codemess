@@ -1,69 +1,124 @@
 function rs = simpleRectSelection(roiRect, vidToDisplay, rectSize)
-
 % WIP
 
 if nargin < 1 || isempty(roiRect)
     roiRect = images.roi.Rectangle.empty();
 end
+
 if nargin < 2
     vidToDisplay = [];
 end
+
 if nargin < 3
     rectSize = [32 32];
 end
 
-% todo: numframes or refactor out
+%% todo: numframes or refactor out
+
 maxNumFrames = 800;
 rectColors = {roiRect.Color};
 
-if isempty(vidToDisplay)
-    %%
-    chunkSize=8;
-    [config,control,state] = ignition.io.tiff.initializeTiffFileStream();
-    warning('off','MATLAB:structOnObject');
-    vid.filesrc = struct(config.fileInputObj);
-    %     vid.datasetname = string(config.fileInputObj.DataSetName);
-    %     vid.filename = string(config.fileInputObj.FileName);
-    %     vid.filepath = string(config.fileInputObj.FullFilePath);
-%     [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, 1:chunkSize);
-    
-    %%
-    vidChunk = {};
-    frameIdx = 0;   
-    while true
-        [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, frameIdx(end)+(1:chunkSize));
-        disp(frameIdx)
-        vidChunk{end+1} = videoFrame;
-        if streamFinishedFlag || frameIdx(end) >= maxNumFrames
-            break
-        end
+%%
+
+[nextFcn, pp] = getScicadelicPreProcessor();
+
+%%
+
+answer = inputdlg('process up to which frame number?');
+gatherAllOutput = strcmpi('yes',questdlg('gather all output? (SLOW, click no if you are using the files written to disk'));
+goToFrame = str2num(answer{1});
+chunkNum = 0;
+idx = 0;
+
+while idx(end)<goToFrame
+    [out.intensity,out.info,out.mstat,out.frgb,out.srgb] = nextFcn();
+    if isempty(out.info.idx)
+        break
+    end    
+    chunkNum = chunkNum + 1;
+    idx = out.info.idx;
+    if gatherAllOutput
+        savedOut(chunkNum) = gatherOrRecurse(out);
     end
-    
-    %%
-    vid.frame = cat(2,vidChunk{:});
-    
-    %%
-    
-    
-    vid.original = cat(3,vid.frame.Data);
-    vid.min = min(vid.original,[],3);
-    vid.minsmooth = imgaussfilt(vid.min,15);
-    vid.minsubtract = vid.original - vid.minsmooth;
-    vidToDisplay = vid.minsubtract;
+
+end    
+
+
+function val = gatherOrRecurse(s)
+if isstruct(s)
+    val = structfun( @gatherOrRecurse, s, 'UniformOutput', false);
 else
-    vid = struct.empty();
+    val = gather(s);
+end
 end
 
-hImsc = imscplay(vidToDisplay);
+%%
+
+% pp.sys.pixelintensitystatisticcollector.show
+istats = pp.sys.pixelintensitystatisticcollector.getStatistics;
+
+% imsc(istats.Mean)
+% imsc(istats.Skewness)
+% imsc(istats.Kurtosis)
+% hImsc = imsc(istats.StandardDeviation)
+
+vidToDisplay = readBinaryData();
+hRgbVid = imrgbplay(vidToDisplay);
+% hRgbVid = imscplay(vidToDisplay);
+% hStill = imsc(istats.StandardDeviation);
+vid = vidToDisplay;
+
+rs.filesrc = pp.env.defaultDataSetName;
+
+% vid.original = out.intensity;
+% redFloat32 = gather(out.srgb.marginalSkewnessOfIntensityChange);
+% greenFloat32 = gather(out.srgb.inverseIntensityNormalizedToHistoricalMax);
+% savedChunk{end+1} = structfun( @gather, out.srgb, 'UniformOutput', false)
+%%
+% 
+% if isempty(vidToDisplay)
+%     %%
+%     chunkSize=8;
+%     [config,control,state] = ignition.io.tiff.initializeTiffFileStream();
+%     warning('off','MATLAB:structOnObject');
+%     vid.filesrc = struct(config.fileInputObj);
+%     %     vid.datasetname = string(config.fileInputObj.DataSetName);
+%     %     vid.filename = string(config.fileInputObj.FileName);
+%     %     vid.filepath = string(config.fileInputObj.FullFilePath);
+% %     [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, 1:chunkSize);
+%     
+%     %%
+%     vidChunk = {};
+%     frameIdx = 0;   
+%     while true
+%         [videoFrame, streamFinishedFlag, frameIdx] = ignition.io.tiff.readTiffFileStream( config, frameIdx(end)+(1:chunkSize));
+%         disp(frameIdx)
+%         vidChunk{end+1} = videoFrame;
+%         if streamFinishedFlag || frameIdx(end) >= maxNumFrames
+%             break
+%         end
+%     end
+%     
+%     %%
+%     vid.frame = cat(2,vidChunk{:});
+%     
+%     %%
+%      
+%     vid.original = cat(3,vid.frame.Data);
+%     vid.min = min(vid.original,[],3);
+%     vid.minsmooth = imgaussfilt(vid.min,15);
+%     vid.minsubtract = vid.original - vid.minsmooth;
+%     vidToDisplay = vid.minsubtract;
+% else
+%     vid = struct.empty();
+% end
+
 
 %%
 m=0;
 % persistent hNextDlg;
-
 % hNextDlg = createDialog();
-
 % newRectFcn = @adjustRectangle;
-
 
 rs.getRect = @returnRoiRect;
 rs.getVid = @returnVid;
@@ -93,7 +148,7 @@ hDlg = createDialog();
             else
                 nextColor = defaultColor;
             end            
-            nextRect = drawrectangle( hImsc.ax,...
+            nextRect = drawrectangle(hRgbVid.ax,...
                 'AspectRatio', 1,...
                 'FixedAspectRatio', true,...
                 'InteractionsAllowed', 'translate',...
@@ -108,7 +163,6 @@ hDlg = createDialog();
 %         hdlg = msgbox('click when ready for next', 'next roi', 'none','replace');
 %         okbutton = findobj(hdlg.Children, 'Style','pushbutton');
 %         set(okbutton, 'Callback', @(varargin)adjustRectangle());
-        
     end
 
     function roi = returnRoiRect()
@@ -126,7 +180,7 @@ hDlg = createDialog();
             numColors=numel(roiRect);
         end
         assert(numColors>=1,'pass number of colors to set')
-        defaultColor = [0.0745 0.6235 1.000];
+        defaultColor = [0.0745 0.6235 1.000 .2];
         for colorNum = 1:numColors
             if numel(roiRect) >= colorNum && isa(roiRect(colorNum),'images.roi.Rectangle')
                 nextColor = uisetcolor( roiRect(colorNum).Color, "Next ROI Color");
